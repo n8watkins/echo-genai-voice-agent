@@ -34,7 +34,9 @@ export interface UseVoiceAgentOptions {
 
 export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const [state, setState] = useState<TurnState>('idle');
-  const [handsFree, setHandsFree] = useState(false);
+  // Hands-free + barge-in is the default conversation mode; push-to-talk is the
+  // alternative selected from the top-bar Mode toggle.
+  const [handsFree, setHandsFree] = useState(true);
   const [interim, setInterim] = useState('');
   const [partialReply, setPartialReply] = useState('');
   const [activeTool, setActiveTool] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
 
   // Refs that callbacks need without stale closures.
   const stateRef = useRef<TurnState>('idle');
-  const handsFreeRef = useRef(false);
+  const handsFreeRef = useRef(true);
   const logRef = useRef<LogTurn[]>([]);
   const chunkerRef = useRef(new SentenceChunker());
   const abortRef = useRef<AbortController | null>(null);
@@ -286,17 +288,25 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     dispatch({ type: 'MIC_OFF' });
   }, [speech, recognition, contRecognition, dispatch]);
 
+  /** Set hands-free mode explicitly (Conversation = true, Push-to-talk = false). */
+  const setMode = useCallback(
+    (next: boolean) => {
+      setHandsFree((prev) => {
+        if (prev === next) return prev;
+        // Stop whichever recognizer was running so the modes don't fight.
+        recognition.abort();
+        contRecognition.abort();
+        if (stateRef.current !== 'idle') dispatch({ type: 'MIC_OFF' });
+        return next;
+      });
+    },
+    [recognition, contRecognition, dispatch]
+  );
+
   /** Toggle hands-free best-effort mode. */
   const toggleHandsFree = useCallback(() => {
-    setHandsFree((prev) => {
-      const next = !prev;
-      // Stop whichever recognizer was running.
-      recognition.abort();
-      contRecognition.abort();
-      if (stateRef.current !== 'idle') dispatch({ type: 'MIC_OFF' });
-      return next;
-    });
-  }, [recognition, contRecognition, dispatch]);
+    setMode(!handsFreeRef.current);
+  }, [setMode]);
 
   /** First-class text fallback — works with no mic at all. */
   const submitText = useCallback(
@@ -332,6 +342,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     stopListening,
     stopAll,
     toggleHandsFree,
+    setHandsFree: setMode,
     submitText,
     clearLog,
   };

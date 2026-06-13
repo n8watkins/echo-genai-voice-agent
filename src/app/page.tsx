@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react';
 import {
   InformationCircleIcon,
   PaperAirplaneIcon,
-  Bars3Icon,
-  XMarkIcon,
-  TrashIcon,
+  Cog6ToothIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import { useVoiceAgent } from '@/hooks/useVoiceAgent';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -18,15 +17,16 @@ import VoiceOrb from '@/components/VoiceOrb';
 import StatusPill from '@/components/StatusPill';
 import LiveCaptions from '@/components/LiveCaptions';
 import MicButton from '@/components/MicButton';
-import VoicePicker from '@/components/VoicePicker';
-import ConversationLog from '@/components/ConversationLog';
-import InlineKeyEntry from '@/components/InlineKeyEntry';
-import PersonaPicker from '@/components/PersonaPicker';
 import StarterPrompts from '@/components/StarterPrompts';
-import WakeWordToggle from '@/components/WakeWordToggle';
-import { PoolMeterBar } from '@/components/UsageMeter';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import AboutModal from '@/components/AboutModal';
+import PersonaSwitcher from '@/components/PersonaSwitcher';
+import ModeToggle from '@/components/ModeToggle';
+import VoiceQuickSelect from '@/components/VoiceQuickSelect';
+import { UsagePill } from '@/components/UsageMeter';
+import SettingsDrawer from '@/components/SettingsDrawer';
+import ChatRail from '@/components/ChatRail';
+import { HeadsetTipBanner } from '@/components/HeadsetTip';
 
 export default function StagePage() {
   const { persona, personaId, selectPersona, personas } = usePersona();
@@ -36,7 +36,8 @@ export default function StagePage() {
   const usage = useUsageInfo();
   const wake = useWakeWord({ onWake: () => agent.startListening() });
 
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [railOpen, setRailOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [draft, setDraft] = useState('');
 
@@ -54,6 +55,9 @@ export default function StagePage() {
 
   const showStarters = agent.state === 'idle' && agent.log.length === 0 && !agent.partialReply;
 
+  // The headset tip is relevant whenever hands-free mode is active.
+  const headsetTipActive = agent.micSupported && agent.handsFree;
+
   const submitDraft = () => {
     const text = draft.trim();
     if (!text) return;
@@ -61,57 +65,89 @@ export default function StagePage() {
     setDraft('');
   };
 
+  const newConversation = () => {
+    agent.stopAll();
+    agent.clearLog();
+  };
+
   return (
-    <main className="echo-stage min-h-dvh flex flex-col text-cyan-50 relative overflow-hidden">
-      {/* Top bar */}
-      <header className="flex items-center justify-between px-5 py-4 z-10">
-        <div className="flex items-center gap-2">
+    <main className="echo-stage h-dvh flex flex-col text-cyan-50 relative overflow-hidden">
+      {/* ---- Top bar -------------------------------------------------------- */}
+      <header className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3 z-10 border-b border-white/5">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <button
+            onClick={() => setRailOpen((o) => !o)}
+            aria-label="Toggle conversations panel"
+            aria-pressed={railOpen}
+            className="p-2 rounded-lg hover:bg-white/5 text-cyan-200/70 hover:text-cyan-100 transition"
+          >
+            <ChatBubbleLeftRightIcon className="w-5 h-5" />
+          </button>
           <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-teal-300 bg-clip-text text-transparent">
             Echo
           </span>
-          <span className="hidden sm:inline text-xs text-cyan-200/50">realtime voice agent</span>
+          <PersonaSwitcher personas={personas} activeId={personaId} onSelect={selectPersona} />
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {agent.micSupported && (
+            <ModeToggle handsFree={agent.handsFree} onChange={agent.setHandsFree} />
+          )}
+          <VoiceQuickSelect speech={agent.speech} />
+          <UsagePill usage={usage} />
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="p-2 rounded-lg hover:bg-white/5 text-cyan-200/70 hover:text-cyan-100 transition"
+            aria-label="Open settings"
+          >
+            <Cog6ToothIcon className="w-5 h-5" />
+          </button>
           <button
             onClick={() => setAboutOpen(true)}
             className="p-2 rounded-lg hover:bg-white/5 text-cyan-200/70 hover:text-cyan-100 transition"
             aria-label="About Echo"
           >
-            <InformationCircleIcon className="w-6 h-6" />
-          </button>
-          <button
-            onClick={() => setPanelOpen((p) => !p)}
-            className="p-2 rounded-lg hover:bg-white/5 text-cyan-200/70 hover:text-cyan-100 transition"
-            aria-label="Toggle panel"
-          >
-            {panelOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
+            <InformationCircleIcon className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <div className="flex-1 flex relative">
-        {/* Stage center */}
-        <section className="flex-1 flex flex-col items-center justify-center gap-8 px-4 pb-8">
-          <VoiceOrb state={agent.state} onClick={orbClick} />
+      {/* ---- Body: rail + center stage ------------------------------------ */}
+      <div className="flex-1 flex min-h-0">
+        <ChatRail
+          open={railOpen}
+          onClose={() => setRailOpen(false)}
+          log={agent.log}
+          partialReply={agent.partialReply}
+          onNew={newConversation}
+          onClear={agent.clearLog}
+        />
 
-          <StatusPill state={agent.state} tool={agent.activeTool} />
+        <section className="flex-1 flex flex-col min-w-0">
+          {/* Center stage */}
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 overflow-y-auto">
+            <VoiceOrb state={agent.state} onClick={orbClick} />
 
-          <LiveCaptions interim={agent.interim} reply={agent.partialReply} />
+            <StatusPill state={agent.state} tool={agent.activeTool} />
 
-          {agent.error && (
-            <p className="text-sm text-rose-400 max-w-md text-center bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-2">
-              {agent.error}
-            </p>
-          )}
+            <LiveCaptions interim={agent.interim} reply={agent.partialReply} />
 
-          {showStarters && (
-            <StarterPrompts prompts={persona.starterPrompts} onPick={agent.submitText} />
-          )}
+            {agent.error && (
+              <p className="text-sm text-rose-400 max-w-md text-center bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-2">
+                {agent.error}
+              </p>
+            )}
 
-          {/* Controls */}
-          <div className="flex flex-col items-center gap-5 w-full max-w-xl">
-            <div className="flex items-center justify-center gap-6">
-              <MicButton
+            {showStarters && (
+              <StarterPrompts prompts={persona.starterPrompts} onPick={agent.submitText} />
+            )}
+          </div>
+
+          {/* ---- Bottom dock (persistent) --------------------------------- */}
+          <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 py-3">
+            <HeadsetTipBanner active={headsetTipActive} />
+            <div className="mx-auto flex max-w-2xl items-center gap-3 pt-2">
+              <MicButtonCompact
                 state={agent.state}
                 handsFree={agent.handsFree}
                 disabled={!agent.micSupported}
@@ -119,22 +155,6 @@ export default function StagePage() {
                 onPressEnd={agent.stopListening}
                 onStop={agent.stopAll}
               />
-            </div>
-
-            {agent.micSupported && (
-              <label className="flex items-center gap-2 text-xs text-cyan-200/70 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={agent.handsFree}
-                  onChange={agent.toggleHandsFree}
-                  className="accent-cyan-400"
-                />
-                Hands-free + barge-in <span className="text-cyan-200/40">(best-effort — may hear itself)</span>
-              </label>
-            )}
-
-            {/* First-class text fallback */}
-            <div className="w-full flex items-center gap-2">
               <input
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -153,67 +173,37 @@ export default function StagePage() {
             </div>
           </div>
         </section>
-
-        {/* Side panel */}
-        {panelOpen && (
-          <aside className="w-full sm:w-96 absolute sm:relative inset-0 sm:inset-auto bg-gray-950/95 sm:bg-white/5 backdrop-blur-md border-l border-white/10 p-5 overflow-y-auto z-20 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-cyan-100">Conversation</h2>
-              <button
-                onClick={agent.clearLog}
-                className="flex items-center gap-1 text-xs text-cyan-200/60 hover:text-cyan-100"
-              >
-                <TrashIcon className="w-4 h-4" /> Clear
-              </button>
-            </div>
-            <div className="flex-1 min-h-[8rem]">
-              <ConversationLog log={agent.log} partialReply={agent.partialReply} />
-            </div>
-
-            <div className="border-t border-white/10 pt-4">
-              <h3 className="text-sm font-semibold text-cyan-100 mb-3">Persona</h3>
-              <PersonaPicker personas={personas} activeId={personaId} onSelect={selectPersona} />
-            </div>
-
-            <div className="border-t border-white/10 pt-4">
-              <h3 className="text-sm font-semibold text-cyan-100 mb-3">Voice</h3>
-              <VoicePicker speech={agent.speech} />
-            </div>
-
-            <div className="border-t border-white/10 pt-4">
-              <h3 className="text-sm font-semibold text-cyan-100 mb-3">Hands-free wake word</h3>
-              <WakeWordToggle wake={wake} />
-            </div>
-
-            <div className="border-t border-white/10 pt-4">
-              <h3 className="text-sm font-semibold text-cyan-100 mb-2">Usage</h3>
-              <PoolMeterBar usage={usage} />
-            </div>
-
-            {!hasApiKey && (
-              <div className="border-t border-white/10 pt-4">
-                <h3 className="text-sm font-semibold text-cyan-100 mb-2">Bring your own key</h3>
-                <InlineKeyEntry />
-              </div>
-            )}
-
-            <div className="border-t border-white/10 pt-4">
-              <button
-                onClick={() => {
-                  setAboutOpen(false);
-                  reopenOnboarding();
-                }}
-                className="text-xs text-cyan-300 hover:text-cyan-200 underline"
-              >
-                Replay the intro
-              </button>
-            </div>
-          </aside>
-        )}
       </div>
+
+      {/* ---- Drawers + modals --------------------------------------------- */}
+      <SettingsDrawer
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        speech={agent.speech}
+        wake={wake}
+        hasApiKey={hasApiKey}
+        onReplayIntro={() => {
+          setSettingsOpen(false);
+          setAboutOpen(false);
+          reopenOnboarding();
+        }}
+      />
 
       <OnboardingWizard isOpen={showWizard} onComplete={() => completeOnboarding()} />
       <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
     </main>
+  );
+}
+
+/**
+ * The bottom-dock mic. Reuses MicButton's full press/hold + hands-free
+ * behaviour but drops its vertical label/caption so it sits inline next to the
+ * text input.
+ */
+function MicButtonCompact(props: React.ComponentProps<typeof MicButton>) {
+  return (
+    <div className="[&_span]:hidden [&_button]:!w-12 [&_button]:!h-12 [&_button]:!scale-100">
+      <MicButton {...props} />
+    </div>
   );
 }

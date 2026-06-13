@@ -9,7 +9,6 @@ export interface UsageInfo {
     resetAt: string | number | null;
     available: number;
   };
-  user?: { requests: number; tokens: number };
 }
 
 /** Fetches the shared demo-pool snapshot once per mount. Degrades to null. */

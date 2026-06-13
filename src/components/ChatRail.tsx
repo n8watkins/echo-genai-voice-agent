@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { LogTurn } from '@/hooks/useVoiceAgent';
 import ConversationLog from './ConversationLog';
 
@@ -27,6 +29,27 @@ export default function ChatRail({
   onClear: () => void;
 }) {
   const empty = log.length === 0 && !partialReply;
+
+  // The mobile overlay is a modal; the desktop inline column is not. Only trap
+  // focus / handle Esc when the overlay is actually shown (viewport < lg).
+  const [isOverlay, setIsOverlay] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)');
+    const update = () => setIsOverlay(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const modalOpen = open && isOverlay;
+  const trapRef = useFocusTrap<HTMLElement>(modalOpen);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [modalOpen, onClose]);
 
   const inner = (
     <div className="flex h-full flex-col gap-3 p-3">
@@ -90,9 +113,12 @@ export default function ChatRail({
         }`}
       />
       <aside
+        ref={trapRef}
         role="dialog"
+        aria-modal="true"
         aria-label="Conversations"
-        className={`lg:hidden fixed left-0 top-0 z-50 h-dvh w-80 max-w-[85vw] border-r border-white/10 bg-gray-950/95 backdrop-blur-md transition-transform duration-200 ${
+        tabIndex={-1}
+        className={`lg:hidden fixed left-0 top-0 z-50 h-dvh w-80 max-w-[85vw] border-r border-white/10 bg-gray-950/95 backdrop-blur-md outline-none transition-transform duration-200 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

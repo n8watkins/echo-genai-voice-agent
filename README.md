@@ -93,6 +93,17 @@ Honest caveats (also shown in the UI):
 - Uses a **built-in** keyword ("Computer") so no custom-trained `.ppn` is needed.
   You can train a custom "Hey Echo" in the Picovoice console and drop it in later.
 - The default acoustic model is served from `public/models/porcupine_params.pv`.
+  This ~1MB binary is **not committed** (it's gitignored). Fetch it on demand
+  only if you enable the wake word:
+
+  ```bash
+  mkdir -p public/models
+  curl -L -o public/models/porcupine_params.pv \
+    https://raw.githubusercontent.com/Picovoice/porcupine/master/lib/common/porcupine_params.pv
+  ```
+
+  Without it, the rest of Echo works unchanged; the wake-word toggle simply
+  fails to start and shows its error hint.
 
 ## Tech stack
 

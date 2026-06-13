@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { useSpeech } from '@/hooks/useSpeech';
 import type { useWakeWord } from '@/hooks/useWakeWord';
 import VoicePicker from './VoicePicker';
@@ -33,6 +34,8 @@ export default function SettingsDrawer({
   hasApiKey: boolean;
   onReplayIntro: () => void;
 }) {
+  const trapRef = useFocusTrap<HTMLElement>(open);
+
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -51,10 +54,12 @@ export default function SettingsDrawer({
         }`}
       />
       <aside
+        ref={trapRef}
         role="dialog"
         aria-modal="true"
         aria-label="Settings"
-        className={`fixed right-0 top-0 z-50 h-dvh w-full max-w-sm overflow-y-auto border-l border-white/10 bg-gray-950/95 backdrop-blur-md p-5 shadow-2xl shadow-black/50 transition-transform duration-200 ${
+        tabIndex={-1}
+        className={`fixed right-0 top-0 z-50 h-dvh w-full max-w-sm overflow-y-auto border-l border-white/10 bg-gray-950/95 backdrop-blur-md p-5 shadow-2xl shadow-black/50 outline-none transition-transform duration-200 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

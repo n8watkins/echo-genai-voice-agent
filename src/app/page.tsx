@@ -147,7 +147,8 @@ export default function StagePage() {
           <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 py-3">
             <HeadsetTipBanner active={headsetTipActive} />
             <div className="mx-auto flex max-w-2xl items-center gap-3 pt-2">
-              <MicButtonCompact
+              <MicButton
+                size="sm"
                 state={agent.state}
                 handsFree={agent.handsFree}
                 disabled={!agent.micSupported}
@@ -192,18 +193,5 @@ export default function StagePage() {
       <OnboardingWizard isOpen={showWizard} onComplete={() => completeOnboarding()} />
       <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
     </main>
-  );
-}
-
-/**
- * The bottom-dock mic. Reuses MicButton's full press/hold + hands-free
- * behaviour but drops its vertical label/caption so it sits inline next to the
- * text input.
- */
-function MicButtonCompact(props: React.ComponentProps<typeof MicButton>) {
-  return (
-    <div className="[&_span]:hidden [&_button]:!w-12 [&_button]:!h-12 [&_button]:!scale-100">
-      <MicButton {...props} />
-    </div>
   );
 }

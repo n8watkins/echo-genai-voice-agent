@@ -7,11 +7,16 @@ import type { TurnState } from '@/lib/conversation/turnMachine';
  * Mic control. In the default hands-free mode it tap-toggles a continuous
  * session; in the push-to-talk mode it captures while held (release to send).
  * Turns rose when live.
+ *
+ * `size` controls the footprint without losing the caption label or the
+ * press/scale feedback: "lg" is the centre-stage button, "sm" is the inline
+ * bottom-dock variant.
  */
 export default function MicButton({
   state,
   handsFree,
   disabled,
+  size = 'lg',
   onPressStart,
   onPressEnd,
   onStop,
@@ -19,6 +24,7 @@ export default function MicButton({
   state: TurnState;
   handsFree: boolean;
   disabled?: boolean;
+  size?: 'sm' | 'lg';
   onPressStart: () => void;
   onPressEnd: () => void;
   onStop: () => void;
@@ -26,17 +32,23 @@ export default function MicButton({
   const live = state === 'listening';
   const active = state !== 'idle';
 
+  // Size-dependent classes. The label and scale feedback are kept in both.
+  const buttonSize = size === 'sm' ? 'w-12 h-12' : 'w-16 h-16';
+  const iconSize = size === 'sm' ? 'w-6 h-6' : 'w-7 h-7';
+  const labelSize = size === 'sm' ? 'text-[10px]' : 'text-xs';
+  const activeScale = size === 'sm' ? 'scale-105' : 'scale-110';
+
   if (disabled) {
     return (
       <div className="flex flex-col items-center gap-1">
         <button
           disabled
-          className="w-16 h-16 rounded-full bg-gray-700/60 flex items-center justify-center text-gray-400 cursor-not-allowed"
+          className={`${buttonSize} rounded-full bg-gray-700/60 flex items-center justify-center text-gray-400 cursor-not-allowed`}
           aria-label="Microphone unavailable"
         >
-          <MicrophoneIcon className="w-7 h-7" />
+          <MicrophoneIcon className={iconSize} />
         </button>
-        <span className="text-xs text-gray-400">No mic — type below</span>
+        <span className={`${labelSize} text-gray-400 whitespace-nowrap`}>No mic — type below</span>
       </div>
     );
   }
@@ -48,16 +60,16 @@ export default function MicButton({
       <div className="flex flex-col items-center gap-1">
         <button
           onClick={active ? onStop : onPressStart}
-          className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg ${
+          className={`${buttonSize} rounded-full flex items-center justify-center transition-all shadow-lg ${
             live
-              ? 'bg-rose-500 shadow-rose-500/50 scale-105'
+              ? `bg-rose-500 shadow-rose-500/50 ${size === 'sm' ? 'scale-105' : 'scale-105'}`
               : 'bg-gradient-to-br from-cyan-500 to-teal-500 shadow-cyan-500/40 hover:scale-105'
           }`}
           aria-label={active ? 'Stop' : 'Start hands-free conversation'}
         >
-          {active ? <StopIcon className="w-7 h-7 text-white" /> : <MicrophoneIcon className="w-7 h-7 text-white" />}
+          {active ? <StopIcon className={`${iconSize} text-white`} /> : <MicrophoneIcon className={`${iconSize} text-white`} />}
         </button>
-        <span className="text-xs text-cyan-200/70">{active ? 'Tap to stop' : 'Tap to start'}</span>
+        <span className={`${labelSize} text-cyan-200/70 whitespace-nowrap`}>{active ? 'Tap to stop' : 'Tap to start'}</span>
       </div>
     );
   }
@@ -80,16 +92,16 @@ export default function MicButton({
           e.preventDefault();
           onPressEnd();
         }}
-        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg select-none touch-none ${
+        className={`${buttonSize} rounded-full flex items-center justify-center transition-all shadow-lg select-none touch-none ${
           live
-            ? 'bg-rose-500 shadow-rose-500/50 scale-110'
+            ? `bg-rose-500 shadow-rose-500/50 ${activeScale}`
             : 'bg-gradient-to-br from-cyan-500 to-teal-500 shadow-cyan-500/40 hover:scale-105'
         }`}
         aria-label="Hold to talk"
       >
-        <MicrophoneIcon className="w-7 h-7 text-white" />
+        <MicrophoneIcon className={`${iconSize} text-white`} />
       </button>
-      <span className="text-xs text-cyan-200/70">{live ? 'Release to send' : 'Hold to talk'}</span>
+      <span className={`${labelSize} text-cyan-200/70 whitespace-nowrap`}>{live ? 'Release to send' : 'Hold to talk'}</span>
     </div>
   );
 }

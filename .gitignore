@@ -41,3 +41,8 @@ logs/
 .vscode/
 .idea/
 *.swp
+
+# Porcupine wake-word acoustic model (~1MB binary). Not committed — fetched on
+# demand only when the optional wake-word feature is enabled. See the README
+# "Wake word" section and .env.example for the one-line download.
+/public/models/porcupine_params.pv

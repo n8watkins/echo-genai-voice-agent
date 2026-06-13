@@ -196,7 +196,7 @@ const AboutContent: React.FC = () => {
             <Column
               label="Turn-taking"
               color="text-teal-400"
-              items={['State-machine turn logic', 'Barge-in cancel', 'Push-to-talk default']}
+              items={['State-machine turn logic', 'Barge-in cancel', 'Hands-free default (headphones rec.)']}
             />
             <Column
               label="Privacy"

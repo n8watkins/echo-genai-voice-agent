@@ -115,10 +115,22 @@ And here's the honest catch that reshaped the whole project:
 > loop, literally.
 
 The Web Speech API doesn't hand you the raw mic stream, so you can't run echo
-cancellation against your own output. So I made the pragmatic call: **push-to-talk
-is the reliable default.** Hands-free + barge-in is a clearly-labeled *best-effort*
-toggle. I'd rather ship a turn mode that always works than a magic one that loops
-on itself in front of a portfolio reviewer.
+cancellation against your own output. The fix that kept hands-free as the default
+without the loop is layered:
+
+1. **Pause the recognizer while Echo speaks.** The moment the first sentence goes
+   to TTS I `abort()` the continuous recognizer, so for most of Echo's turn the
+   mic literally isn't listening and can't transcribe Echo's own voice.
+2. **A post-TTS cooldown.** When the speech queue drains I wait a few hundred
+   milliseconds before resuming and before honoring barge-in again — long enough
+   for any trailing speaker audio to die out.
+3. **A minimum interim length.** A stray syllable that slips through the cracks
+   isn't treated as an interrupt; a genuine interruption is a longer interim.
+
+So **hands-free + barge-in is the default**, headphones recommended for the
+cleanest run, and **push-to-talk is the alternative** mode a click away. I'd
+rather ship the live-feeling mode and be honest about its one hardware caveat
+than hide it behind a toggle.
 
 ## Why browser Web Speech API (and where it bites)
 

@@ -33,6 +33,9 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const manualStopRef = useRef(false);
+  // While paused, the recognizer is intentionally stopped (e.g. so it can't
+  // hear Echo's own TTS) but should auto-resume when unpaused in continuous mode.
+  const pausedRef = useRef(false);
   // Keep the latest callbacks without re-creating the recognizer.
   const cbRef = useRef(options);
   cbRef.current = options;
@@ -77,8 +80,8 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     rec.onend = () => {
       setListening(false);
       cbRef.current.onEnd?.();
-      // Auto-restart in continuous mode unless the caller stopped us.
-      if (continuous && !manualStopRef.current) {
+      // Auto-restart in continuous mode unless the caller stopped or paused us.
+      if (continuous && !manualStopRef.current && !pausedRef.current) {
         try {
           rec.start();
           setListening(true);
@@ -96,6 +99,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     const rec = ensureRecognizer();
     if (!rec) return;
     manualStopRef.current = false;
+    pausedRef.current = false;
     try {
       rec.start();
       setListening(true);
@@ -104,8 +108,39 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     }
   }, [ensureRecognizer]);
 
+  /**
+   * Suppress the recognizer without ending the session. Used in hands-free mode
+   * while Echo speaks so the mic can't transcribe Echo's own TTS (the self-
+   * interrupt / echo-loop problem). `abort()` discards any in-flight audio so a
+   * trailing word of Echo's voice isn't delivered after resume.
+   */
+  const pause = useCallback(() => {
+    pausedRef.current = true;
+    try {
+      recognitionRef.current?.abort();
+    } catch {
+      /* not running */
+    }
+    setListening(false);
+  }, []);
+
+  /** Resume after a pause(). No-op if the caller fully stopped the session. */
+  const resume = useCallback(() => {
+    if (manualStopRef.current) return;
+    pausedRef.current = false;
+    const rec = ensureRecognizer();
+    if (!rec) return;
+    try {
+      rec.start();
+      setListening(true);
+    } catch {
+      // already running — ignore.
+    }
+  }, [ensureRecognizer]);
+
   const stop = useCallback(() => {
     manualStopRef.current = true;
+    pausedRef.current = false;
     try {
       recognitionRef.current?.stop();
     } catch {
@@ -116,6 +151,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
 
   const abort = useCallback(() => {
     manualStopRef.current = true;
+    pausedRef.current = false;
     try {
       recognitionRef.current?.abort();
     } catch {
@@ -135,5 +171,5 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     };
   }, []);
 
-  return { supported, listening, start, stop, abort };
+  return { supported, listening, start, stop, abort, pause, resume };
 }

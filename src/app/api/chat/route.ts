@@ -4,7 +4,7 @@ import { getClient, resolveApiKey, resolveModel } from '@/lib/gemini';
 import { SYSTEM_PROMPT } from '@/lib/conversation/prompts';
 import { functionDeclarations, dispatchTool } from '@/lib/conversation/tools';
 import { encodeSSE } from '@/lib/sse';
-import { recordUsage, demoPoolExhausted } from '@/app/api/usage/route';
+import { recordModelCall, demoPoolExhausted } from '@/app/api/usage/route';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -24,6 +24,13 @@ interface ChatBody {
 
 const MAX_TOOL_ROUNDS = 4;
 
+// Server-side input caps — never trust the client's trimming. A turn that
+// exceeds these is rejected outright rather than silently truncated.
+const MAX_MESSAGE_CHARS = 4000;
+const MAX_HISTORY_TURNS = 24;
+const MAX_HISTORY_TURN_CHARS = 4000;
+const MAX_HISTORY_TOTAL_CHARS = 48000;
+
 export async function POST(req: NextRequest) {
   let body: ChatBody;
   try {
@@ -36,12 +43,33 @@ export async function POST(req: NextRequest) {
     return new Response('Empty message', { status: 400 });
   }
 
+  if (body.message.length > MAX_MESSAGE_CHARS) {
+    return new Response('Message too long', { status: 413 });
+  }
+
+  // Clamp history server-side: cap turn count, per-turn size, and total size.
+  // Keep the most recent turns (closest to the new message).
+  const rawHistory = Array.isArray(body.history) ? body.history : [];
+  let totalHistoryChars = 0;
+  const history: ChatTurn[] = [];
+  for (const turn of rawHistory.slice(-MAX_HISTORY_TURNS)) {
+    if (turn?.role !== 'user' && turn?.role !== 'assistant') continue;
+    const text = typeof turn.text === 'string' ? turn.text.slice(0, MAX_HISTORY_TURN_CHARS) : '';
+    if (!text) continue;
+    totalHistoryChars += text.length;
+    if (totalHistoryChars > MAX_HISTORY_TOTAL_CHARS) {
+      return new Response('History too large', { status: 413 });
+    }
+    history.push({ role: turn.role, text });
+  }
+
   const resolved = resolveApiKey(body.apiKey);
   if (!resolved) {
     return new Response('No API key configured', { status: 503 });
   }
 
-  // Enforce the shared 500/day demo budget. BYOK requests bypass entirely.
+  // Enforce the shared demo budget (250 model calls / rolling 24h). BYOK
+  // requests bypass entirely.
   if (resolved.source === 'demo' && demoPoolExhausted()) {
     return new Response(
       JSON.stringify({
@@ -63,9 +91,9 @@ export async function POST(req: NextRequest) {
       ? body.systemPrompt.slice(0, 4000)
       : SYSTEM_PROMPT;
 
-  // Build conversation contents from short history + the new user turn.
+  // Build conversation contents from short (clamped) history + the new turn.
   const contents: Content[] = [];
-  for (const turn of body.history ?? []) {
+  for (const turn of history) {
     contents.push({
       role: turn.role === 'user' ? 'user' : 'model',
       parts: [{ text: turn.text }],
@@ -86,6 +114,11 @@ export async function POST(req: NextRequest) {
         // result, and continue with another generateContentStream call.
         while (round < MAX_TOOL_ROUNDS) {
           round += 1;
+
+          // Count the call BEFORE awaiting the stream so an error/abort mid-
+          // stream still counts — the model was hit either way. One chat turn
+          // can fire up to MAX_TOOL_ROUNDS of these against the demo key.
+          recordModelCall(resolved.source);
 
           const result = await ai.models.generateContentStream({
             model,
@@ -143,7 +176,6 @@ export async function POST(req: NextRequest) {
           // loop again — model continues with tool results
         }
 
-        recordUsage(resolved.source);
         send(encodeSSE({ type: 'done' }));
       } catch (err) {
         const message =

@@ -4,8 +4,9 @@ import { MicrophoneIcon, StopIcon } from '@heroicons/react/24/solid';
 import type { TurnState } from '@/lib/conversation/turnMachine';
 
 /**
- * Push-to-talk control (default). Press and hold to talk, release to send;
- * also supports a tap-to-toggle for accessibility. Turns rose when live.
+ * Mic control. In the default hands-free mode it tap-toggles a continuous
+ * session; in the push-to-talk mode it captures while held (release to send).
+ * Turns rose when live.
  */
 export default function MicButton({
   state,

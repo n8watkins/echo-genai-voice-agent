@@ -20,8 +20,9 @@ Accent identity: **cyan → teal**, with a warm **rose** "live mic" accent.
   time-zone, and web-search tools mid-conversation.
 - 🔊 **Speaks as it thinks** — a sentence chunker starts text-to-speech on the
   *first* sentence instead of waiting for the whole reply (the big latency win).
-- ↩️ **Barge-in** — talk over Echo and it cancels speech and listens (best-effort
-  hands-free mode; see limitations).
+- ↩️ **Hands-free + barge-in (default)** — Echo listens continuously and you can
+  talk over it to cut it off. Headphones recommended; see limitations for the
+  self-interrupt mitigation and the push-to-talk alternative.
 - ⌨️ **First-class text fallback** — no mic, locked-down machine, or Firefox/iOS?
   The typed demo always works.
 - 🎭 **Personas** — switch characters (Witty Mentor, Noir Detective, Hype Coach,
@@ -50,7 +51,8 @@ You speak ──▶ SpeechRecognition (browser STT) ──▶ POST /api/chat
 
 ## Personas
 
-Open the side panel and pick a persona (`src/lib/personas.ts`). Selecting one:
+Pick a persona from the **persona switcher in the top bar** (`src/lib/personas.ts`).
+Selecting one:
 
 - **Changes the system prompt** sent to `/api/chat` — that's the *only* thing
   that changes server-side. No extra model calls, no new APIs; tools and
@@ -135,13 +137,26 @@ Like the rest of the portfolio: instant use on a shared demo key with a usage
 meter, plus a BYOK expander for unlimited use. STT/TTS need no key at all, which
 makes the zero-setup demo even smoother.
 
+The shared demo key is **hard-capped at 250 model calls per rolling 24h** (a
+single chat turn can fire several calls when it uses tools, and every actual call
+counts — even ones that error or abort). BYOK requests bypass the cap entirely.
+**Note:** the counter is **in-memory / per-process**, so it resets on a Render
+free-tier cold start — it's a best-effort soft guard, not a durable global
+ceiling. A durable cross-process cap would store the rolling counter in an
+external KV (e.g. Upstash Redis); intentionally not added here.
+
 ## Limitations (the honest part)
 
-- **Barge-in is hard, so push-to-talk is the default.** While `speechSynthesis`
-  plays through the speakers, the mic can hear Echo's own voice and transcribe it,
-  causing false interrupts. The Web Speech API doesn't expose the raw mic stream,
-  so you can't apply echo cancellation. Hands-free + barge-in is a clearly-labeled
-  *best-effort* toggle, not the default.
+- **Hands-free + barge-in is the default — with a mitigation for the echo loop.**
+  While `speechSynthesis` plays through the speakers, the mic can hear Echo's own
+  voice and transcribe it, causing a false interrupt. The Web Speech API doesn't
+  expose the raw mic stream, so you can't apply echo cancellation. Echo mitigates
+  this by **pausing the recognizer while it speaks**, adding a short **post-TTS
+  cooldown** before honoring barge-in again, and requiring a **minimum interim
+  length** so a stray echo fragment can't count as an interrupt. **Headphones are
+  recommended** for the cleanest experience. A genuine interruption — actually
+  talking over Echo as the queue drains, or tapping the mic to stop — still works,
+  and **push-to-talk is available as the alternative mode** (top-bar toggle).
 - **Web Speech API is Chrome/Edge-only;** iOS Safari is effectively unsupported.
   That's why the typed input is first-class and onboarding recommends Chrome.
 - **Local TTS voices are robotic.** Echo auto-selects the best available local

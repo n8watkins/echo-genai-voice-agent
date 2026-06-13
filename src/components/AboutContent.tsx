@@ -7,6 +7,8 @@ import {
   WrenchScrewdriverIcon,
   KeyIcon,
   CodeBracketIcon,
+  UserGroupIcon,
+  SpeakerWaveIcon,
 } from '@heroicons/react/24/outline';
 
 /**
@@ -138,6 +140,18 @@ const AboutContent: React.FC = () => {
               tint="cyan"
             />
             <Feature
+              icon={<UserGroupIcon className="w-6 h-6 text-violet-400" />}
+              title="Personas"
+              desc="Switch characters — Witty Mentor, Noir Detective, Hype Coach — each with its own voice."
+              tint="violet"
+            />
+            <Feature
+              icon={<SpeakerWaveIcon className="w-6 h-6 text-sky-400" />}
+              title="Hands-free wake word"
+              desc="Optional on-device wake word — say the word and Echo starts listening, no key needed for the rest."
+              tint="sky"
+            />
+            <Feature
               icon={<ArrowUturnLeftIcon className="w-6 h-6 text-rose-400" />}
               title="Interrupt anytime"
               desc="Talk over Echo and it stops and listens — true barge-in."
@@ -196,7 +210,7 @@ const AboutContent: React.FC = () => {
         <div className="bg-gradient-to-br from-cyan-900/20 to-teal-900/20 p-3 rounded-xl">
           <h3 className="text-white text-sm font-bold mb-2 text-center">🛠️ Tech Stack</h3>
           <div className="flex flex-wrap justify-center gap-2">
-            {['TypeScript', 'Next.js 16', 'React 19', 'Tailwind CSS', 'Gemini AI', 'Web Speech API', 'SSE'].map(
+            {['TypeScript', 'Next.js 16', 'React 19', 'Tailwind CSS', 'Gemini AI', 'Web Speech API', 'Porcupine wake word', 'SSE'].map(
               (t) => (
                 <span
                   key={t}
@@ -213,7 +227,8 @@ const AboutContent: React.FC = () => {
         <div className="p-4 bg-white/5 rounded-xl border border-cyan-500/20">
           <p className="text-cyan-50/80 text-sm">
             <span className="font-semibold text-cyan-300">Portfolio project showcasing:</span>{' '}
-            Next.js 16 + TypeScript + Gemini streaming + Web Speech API + real-time turn-taking
+            Next.js 16 + TypeScript + Gemini streaming + Web Speech API + switchable personas +
+            on-device wake word + real-time turn-taking
           </p>
         </div>
       </div>
@@ -230,7 +245,7 @@ function Feature({
   icon: React.ReactNode;
   title: string;
   desc: string;
-  tint: 'cyan' | 'rose' | 'teal' | 'amber' | 'emerald' | 'slate';
+  tint: 'cyan' | 'rose' | 'teal' | 'amber' | 'emerald' | 'slate' | 'violet' | 'sky';
 }) {
   const border: Record<string, string> = {
     cyan: 'border-cyan-500/30 bg-cyan-500/10',
@@ -239,6 +254,8 @@ function Feature({
     amber: 'border-amber-500/30 bg-amber-500/10',
     emerald: 'border-emerald-500/30 bg-emerald-500/10',
     slate: 'border-white/15 bg-white/5',
+    violet: 'border-violet-500/30 bg-violet-500/10',
+    sky: 'border-sky-500/30 bg-sky-500/10',
   };
   return (
     <div className={`flex items-start space-x-3 p-3 rounded-lg border ${border[tint]}`}>

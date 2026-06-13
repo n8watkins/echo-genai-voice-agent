@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   InformationCircleIcon,
   PaperAirplaneIcon,
@@ -12,6 +12,8 @@ import { useVoiceAgent } from '@/hooks/useVoiceAgent';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useApiKey } from '@/hooks/useApiKey';
 import { useUsageInfo } from '@/hooks/useUsageInfo';
+import { usePersona } from '@/hooks/usePersona';
+import { useWakeWord } from '@/hooks/useWakeWord';
 import VoiceOrb from '@/components/VoiceOrb';
 import StatusPill from '@/components/StatusPill';
 import LiveCaptions from '@/components/LiveCaptions';
@@ -19,24 +21,38 @@ import MicButton from '@/components/MicButton';
 import VoicePicker from '@/components/VoicePicker';
 import ConversationLog from '@/components/ConversationLog';
 import InlineKeyEntry from '@/components/InlineKeyEntry';
+import PersonaPicker from '@/components/PersonaPicker';
+import StarterPrompts from '@/components/StarterPrompts';
+import WakeWordToggle from '@/components/WakeWordToggle';
 import { PoolMeterBar } from '@/components/UsageMeter';
 import OnboardingWizard from '@/components/OnboardingWizard';
 import AboutModal from '@/components/AboutModal';
 
 export default function StagePage() {
-  const agent = useVoiceAgent();
+  const { persona, personaId, selectPersona, personas } = usePersona();
+  const agent = useVoiceAgent({ systemPrompt: persona.systemPrompt });
   const { showWizard, completeOnboarding, reopenOnboarding } = useOnboarding();
   const { hasApiKey } = useApiKey();
   const usage = useUsageInfo();
+  const wake = useWakeWord({ onWake: () => agent.startListening() });
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [draft, setDraft] = useState('');
 
+  // Auto-pick a voice matching the active persona's hint (unless the user has
+  // manually overridden the voice — applyVoiceHint no-ops in that case).
+  const { applyVoiceHint } = agent.speech;
+  useEffect(() => {
+    applyVoiceHint(persona.voiceHint);
+  }, [persona.voiceHint, applyVoiceHint, agent.speech.voices.length]);
+
   const orbClick = () => {
     if (agent.state === 'idle') agent.startListening();
     else agent.stopAll();
   };
+
+  const showStarters = agent.state === 'idle' && agent.log.length === 0 && !agent.partialReply;
 
   const submitDraft = () => {
     const text = draft.trim();
@@ -86,6 +102,10 @@ export default function StagePage() {
             <p className="text-sm text-rose-400 max-w-md text-center bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-2">
               {agent.error}
             </p>
+          )}
+
+          {showStarters && (
+            <StarterPrompts prompts={persona.starterPrompts} onPick={agent.submitText} />
           )}
 
           {/* Controls */}
@@ -151,8 +171,18 @@ export default function StagePage() {
             </div>
 
             <div className="border-t border-white/10 pt-4">
+              <h3 className="text-sm font-semibold text-cyan-100 mb-3">Persona</h3>
+              <PersonaPicker personas={personas} activeId={personaId} onSelect={selectPersona} />
+            </div>
+
+            <div className="border-t border-white/10 pt-4">
               <h3 className="text-sm font-semibold text-cyan-100 mb-3">Voice</h3>
               <VoicePicker speech={agent.speech} />
+            </div>
+
+            <div className="border-t border-white/10 pt-4">
+              <h3 className="text-sm font-semibold text-cyan-100 mb-3">Hands-free wake word</h3>
+              <WakeWordToggle wake={wake} />
             </div>
 
             <div className="border-t border-white/10 pt-4">

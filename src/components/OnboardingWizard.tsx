@@ -151,6 +151,10 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
                 <li className="flex gap-2">
                   <span className="text-cyan-400">•</span> No mic? Just type — the text box always works.
                 </li>
+                <li className="flex gap-2">
+                  <span className="text-cyan-400">•</span> Open the panel to switch <em>personas</em> —
+                  Witty Mentor, Noir Detective, Hype Coach, and more — each with its own voice.
+                </li>
               </ul>
 
               {!isChrome && (

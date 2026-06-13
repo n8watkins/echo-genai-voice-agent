@@ -27,7 +27,12 @@ export interface LogTurn {
 
 const HISTORY_LIMIT = 12; // turns of context sent to the model
 
-export function useVoiceAgent() {
+export interface UseVoiceAgentOptions {
+  /** Active persona's system prompt, forwarded to /api/chat. */
+  systemPrompt?: string | null;
+}
+
+export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const [state, setState] = useState<TurnState>('idle');
   const [handsFree, setHandsFree] = useState(false);
   const [interim, setInterim] = useState('');
@@ -47,6 +52,7 @@ export function useVoiceAgent() {
   const abortRef = useRef<AbortController | null>(null);
   const speakingStartedRef = useRef(false);
   const apiKeyRef = useRef<string | null>(null);
+  const systemPromptRef = useRef<string | null>(options.systemPrompt ?? null);
 
   useEffect(() => {
     stateRef.current = state;
@@ -60,6 +66,9 @@ export function useVoiceAgent() {
   useEffect(() => {
     apiKeyRef.current = apiKey;
   }, [apiKey]);
+  useEffect(() => {
+    systemPromptRef.current = options.systemPrompt ?? null;
+  }, [options.systemPrompt]);
 
   const dispatch = useCallback((event: Parameters<typeof transition>[1]) => {
     setState((prev) => transition(prev, event, { handsFree: handsFreeRef.current }));
@@ -154,7 +163,12 @@ export function useVoiceAgent() {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userText, history, apiKey: apiKeyRef.current }),
+          body: JSON.stringify({
+            message: userText,
+            history,
+            apiKey: apiKeyRef.current,
+            systemPrompt: systemPromptRef.current,
+          }),
           signal: controller.signal,
         });
 

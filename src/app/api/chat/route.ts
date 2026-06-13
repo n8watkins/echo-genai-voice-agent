@@ -18,6 +18,8 @@ interface ChatBody {
   message: string;
   history?: ChatTurn[];
   apiKey?: string | null;
+  /** Optional persona system prompt; falls back to the default SYSTEM_PROMPT. */
+  systemPrompt?: string | null;
 }
 
 const MAX_TOOL_ROUNDS = 4;
@@ -54,6 +56,13 @@ export async function POST(req: NextRequest) {
   const model = resolveModel();
   const ai = getClient(resolved.apiKey);
 
+  // Use the persona's system prompt if provided, else the default. Cap its
+  // length defensively so a client can't smuggle a huge prompt through.
+  const systemInstruction =
+    typeof body.systemPrompt === 'string' && body.systemPrompt.trim()
+      ? body.systemPrompt.slice(0, 4000)
+      : SYSTEM_PROMPT;
+
   // Build conversation contents from short history + the new user turn.
   const contents: Content[] = [];
   for (const turn of body.history ?? []) {
@@ -82,7 +91,7 @@ export async function POST(req: NextRequest) {
             model,
             contents,
             config: {
-              systemInstruction: SYSTEM_PROMPT,
+              systemInstruction,
               tools: [{ functionDeclarations }],
               temperature: 0.7,
             },

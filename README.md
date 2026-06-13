@@ -24,6 +24,11 @@ Accent identity: **cyan → teal**, with a warm **rose** "live mic" accent.
   hands-free mode; see limitations).
 - ⌨️ **First-class text fallback** — no mic, locked-down machine, or Firefox/iOS?
   The typed demo always works.
+- 🎭 **Personas** — switch characters (Witty Mentor, Noir Detective, Hype Coach,
+  Calm Guide, Storyteller, …). Each swaps the system prompt, auto-picks a
+  matching browser voice, and shows its own starter prompts.
+- 🗣️ **Wake word (optional)** — say "Computer" to start a turn hands-free, with
+  on-device detection (Picovoice Porcupine). Off by default; opt-in via env key.
 
 ## How it works (the pipeline)
 
@@ -42,6 +47,50 @@ You speak ──▶ SpeechRecognition (browser STT) ──▶ POST /api/chat
   WebSocket transport in my [gemini-chat-app](../gemini-chat-app).
 - **Turn-taking is an explicit state machine** (`lib/conversation/turnMachine.ts`):
   `idle → listening → thinking → speaking`, with barge-in as a first-class edge.
+
+## Personas
+
+Open the side panel and pick a persona (`src/lib/personas.ts`). Selecting one:
+
+- **Changes the system prompt** sent to `/api/chat` — that's the *only* thing
+  that changes server-side. No extra model calls, no new APIs; tools and
+  function-calling are untouched. The route uses the provided prompt and falls
+  back to the default in `lib/conversation/prompts.ts`.
+- **Auto-picks a matching voice** from the browser's voices via each persona's
+  `voiceHint` (gender / language / name). Your manual voice pick always wins and
+  persists.
+- **Swaps the starter-prompt chips** shown near the orb in the idle state.
+
+The choice persists in `localStorage` (`echo_persona`). All persona prompts are
+written spoken-style (short sentences, no markdown) since they feed TTS.
+
+## Voice quality (free, no key)
+
+Browser voices vary wildly. `useSpeech` scores the available
+`speechSynthesis.getVoices()` with heuristics — names containing *Natural*,
+*Neural*, *Google*, *Premium*, *Enhanced*, or online (`localService === false`)
+voices rank highest — and surfaces a **Recommended** group in the picker
+alongside **All voices**, plus rate/pitch controls. This is purely client-side
+and costs nothing. Quality still depends on your OS: Chrome and recent
+macOS/Windows ship the nicest neural voices.
+
+## Wake word (optional, on-device)
+
+Set `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` and a **Wake word** toggle appears in the
+panel. When enabled, [Picovoice Porcupine](https://picovoice.ai/) listens
+**on-device** (WebAssembly, in the browser) for the built-in keyword
+**"Computer"**; on detection it starts a listening turn. The Porcupine modules
+are lazy-loaded only when the toggle is on and a key exists, so they never affect
+the build or runtime otherwise.
+
+Honest caveats (also shown in the UI):
+
+- **Tab must stay open.** A web app has no OS-level background listening — wake
+  detection only runs while the Echo tab is open.
+- **Chrome/Edge + mic permission required**, same as the rest of voice mode.
+- Uses a **built-in** keyword ("Computer") so no custom-trained `.ppn` is needed.
+  You can train a custom "Hey Echo" in the Picovoice console and drop it in later.
+- The default acoustic model is served from `public/models/porcupine_params.pv`.
 
 ## Tech stack
 
@@ -74,6 +123,7 @@ Enable mic).
 | `GEMINI_API_KEY` | Server demo-key fallback (optional; BYOK preferred). |
 | `ECHO_MODEL` | Model id. Defaults to `gemini-3.1-flash-lite`. |
 | `GOOGLE_SEARCH_API_KEY` / `GOOGLE_SEARCH_ENGINE_ID` | Optional — enables the `web_search` tool. Without them, Echo answers from its own knowledge. |
+| `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional — enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
 | `NEXT_PUBLIC_APP_URL`, `PORT` | App URL / port (3200). |
 
 No key at all? The in-app **"bring your own free Gemini key"** panel stores a key

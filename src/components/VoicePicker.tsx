@@ -18,6 +18,15 @@ export default function VoicePicker({ speech }: { speech: SpeechApi }) {
     );
   }
 
+  const recommended = speech.voices.filter((v) => v.recommended);
+  const others = speech.voices.filter((v) => !v.recommended);
+
+  const renderOption = (v: SpeechApi['voices'][number]) => (
+    <option key={v.voiceURI} value={v.voiceURI} className="bg-gray-900">
+      {v.name} ({v.lang}){v.localService ? '' : ' · cloud'}
+    </option>
+  );
+
   return (
     <div className="space-y-3 text-sm">
       <div>
@@ -29,12 +38,24 @@ export default function VoicePicker({ speech }: { speech: SpeechApi }) {
           onChange={(e) => speech.selectVoice(e.target.value)}
           className="w-full rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 text-cyan-50 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
         >
-          {speech.voices.map((v) => (
-            <option key={v.voiceURI} value={v.voiceURI} className="bg-gray-900">
-              {v.name} ({v.lang}){v.localService ? '' : ' · cloud'}
-            </option>
-          ))}
+          {recommended.length > 0 ? (
+            <>
+              <optgroup label="Recommended" className="bg-gray-900">
+                {recommended.map(renderOption)}
+              </optgroup>
+              {others.length > 0 && (
+                <optgroup label="All voices" className="bg-gray-900">
+                  {others.map(renderOption)}
+                </optgroup>
+              )}
+            </>
+          ) : (
+            speech.voices.map(renderOption)
+          )}
         </select>
+        <p className="text-[11px] text-cyan-200/40 mt-1 leading-snug">
+          Recommended voices are higher-quality (Natural, Neural, Google, or online voices).
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -71,7 +92,8 @@ export default function VoicePicker({ speech }: { speech: SpeechApi }) {
         ▶ Preview voice
       </button>
       <p className="text-[11px] text-cyan-200/40 leading-snug">
-        Using free browser voices. Higher-quality neural cloud TTS is the planned upgrade.
+        Free browser voices, auto-tuned to your active persona. Quality varies by OS — Chrome and
+        recent macOS/Windows ship the nicest neural voices.
       </p>
     </div>
   );

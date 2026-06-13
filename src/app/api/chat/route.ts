@@ -4,7 +4,7 @@ import { getClient, resolveApiKey, resolveModel } from '@/lib/gemini';
 import { SYSTEM_PROMPT } from '@/lib/conversation/prompts';
 import { functionDeclarations, dispatchTool } from '@/lib/conversation/tools';
 import { encodeSSE } from '@/lib/sse';
-import { recordUsage } from '@/app/api/usage/route';
+import { recordUsage, demoPoolExhausted } from '@/app/api/usage/route';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,6 +37,18 @@ export async function POST(req: NextRequest) {
   const resolved = resolveApiKey(body.apiKey);
   if (!resolved) {
     return new Response('No API key configured', { status: 503 });
+  }
+
+  // Enforce the shared 500/day demo budget. BYOK requests bypass entirely.
+  if (resolved.source === 'demo' && demoPoolExhausted()) {
+    return new Response(
+      JSON.stringify({
+        error: 'demo_pool_exhausted',
+        message:
+          "The shared demo budget for today is used up. Add your own free Gemini key to keep talking — it's unlimited and never draws from the pool.",
+      }),
+      { status: 429, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 
   const model = resolveModel();

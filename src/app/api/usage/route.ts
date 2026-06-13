@@ -30,6 +30,15 @@ export function recordUsage(source: 'byok' | 'demo') {
   if (source === 'demo') used += 1;
 }
 
+/**
+ * True when the shared demo pool has no budget left for this window.
+ * BYOK requests bypass this check entirely.
+ */
+export function demoPoolExhausted(): boolean {
+  rollWindow();
+  return used >= BUDGET;
+}
+
 export async function GET() {
   rollWindow();
   const resetAt = new Date(windowStart + WINDOW_MS).toISOString();

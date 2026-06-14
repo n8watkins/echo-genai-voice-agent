@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { type Content, type Part } from '@google/genai';
-import { getClient, resolveApiKey, resolveModel } from '@/lib/gemini';
+import { getClient, resolveApiKey, pickModel } from '@/lib/gemini';
 import { SYSTEM_PROMPT } from '@/lib/conversation/prompts';
 import { functionDeclarations, dispatchTool } from '@/lib/conversation/tools';
 import { encodeSSE } from '@/lib/sse';
@@ -20,6 +20,8 @@ interface ChatBody {
   apiKey?: string | null;
   /** Optional persona system prompt; falls back to the default SYSTEM_PROMPT. */
   systemPrompt?: string | null;
+  /** Requested text/tool model id; server allowlists + BYOK-gates it. */
+  model?: string | null;
 }
 
 const MAX_TOOL_ROUNDS = 4;
@@ -81,7 +83,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const model = resolveModel();
+  // The caller supplied their own key iff resolution picked the BYOK source.
+  // Only then may a non-shared model be honored; otherwise pickModel() falls
+  // back to the shared default. The client string is never trusted directly.
+  const byok = resolved.source === 'byok';
+  const model = pickModel(body.model ?? undefined, byok);
   const ai = getClient(resolved.apiKey);
 
   // Use the persona's system prompt if provided, else the default. Cap its

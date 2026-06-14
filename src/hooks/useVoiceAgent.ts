@@ -7,6 +7,7 @@ import { decodeSSE } from '@/lib/sse';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { useSpeech } from './useSpeech';
 import { useApiKey } from './useApiKey';
+import { useModel } from './useModel';
 
 /**
  * The orchestrator. Drives the turn-taking state machine across the full
@@ -67,6 +68,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const [log, setLog] = useState<LogTurn[]>([]);
 
   const { apiKey } = useApiKey();
+  const { model } = useModel();
   const speech = useSpeech();
 
   // Refs that callbacks need without stale closures.
@@ -77,6 +79,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const abortRef = useRef<AbortController | null>(null);
   const speakingStartedRef = useRef(false);
   const apiKeyRef = useRef<string | null>(null);
+  const modelRef = useRef<string>(model);
   const systemPromptRef = useRef<string | null>(options.systemPrompt ?? null);
   // Timestamp until which barge-in is suppressed (post-TTS cooldown).
   const bargeInBlockedUntilRef = useRef(0);
@@ -93,6 +96,9 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   useEffect(() => {
     apiKeyRef.current = apiKey;
   }, [apiKey]);
+  useEffect(() => {
+    modelRef.current = model;
+  }, [model]);
   useEffect(() => {
     systemPromptRef.current = options.systemPrompt ?? null;
   }, [options.systemPrompt]);
@@ -205,6 +211,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
             message: userText,
             history,
             apiKey: apiKeyRef.current,
+            model: modelRef.current,
             systemPrompt: systemPromptRef.current,
           }),
           signal: controller.signal,

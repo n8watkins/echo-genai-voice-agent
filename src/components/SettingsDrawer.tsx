@@ -8,6 +8,7 @@ import type { useWakeWord } from '@/hooks/useWakeWord';
 import VoicePicker from './VoicePicker';
 import WakeWordToggle from './WakeWordToggle';
 import InlineKeyEntry from './InlineKeyEntry';
+import ModelPicker from './ModelPicker';
 import { HeadsetNote } from './HeadsetTip';
 
 type SpeechApi = ReturnType<typeof useSpeech>;
@@ -96,6 +97,11 @@ export default function SettingsDrawer({
               <InlineKeyEntry />
             </section>
           )}
+
+          <section className="border-t border-white/10 pt-5">
+            <h3 className="text-sm font-semibold text-cyan-100 mb-3">Model</h3>
+            <ModelPicker />
+          </section>
 
           <section className="border-t border-white/10 pt-5">
             <button

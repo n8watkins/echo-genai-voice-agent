@@ -9,6 +9,8 @@ import {
   CpuChipIcon,
 } from '@heroicons/react/24/outline';
 import { useVoiceAgent } from '@/hooks/useVoiceAgent';
+import { useLiveSession } from '@/hooks/useLiveSession';
+import { useVoiceEngine } from '@/hooks/useVoiceEngine';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useApiKey } from '@/hooks/useApiKey';
 import { useUsageInfo } from '@/hooks/useUsageInfo';
@@ -25,6 +27,7 @@ import OnboardingWizard from '@/components/OnboardingWizard';
 import AboutModal from '@/components/AboutModal';
 import PersonaSwitcher from '@/components/PersonaSwitcher';
 import ModeToggle from '@/components/ModeToggle';
+import EngineToggle from '@/components/EngineToggle';
 import VoiceQuickSelect from '@/components/VoiceQuickSelect';
 import { UsagePill } from '@/components/UsageMeter';
 import SettingsDrawer from '@/components/SettingsDrawer';
@@ -34,11 +37,26 @@ import { HeadsetTipBanner } from '@/components/HeadsetTip';
 export default function StagePage() {
   const { persona, personaId, selectPersona, personas } = usePersona();
   const agent = useVoiceAgent({ systemPrompt: persona.systemPrompt });
+  const { engine, setEngine } = useVoiceEngine();
+  const live = useLiveSession({ systemPrompt: persona.systemPrompt });
   const { showWizard, completeOnboarding, reopenOnboarding } = useOnboarding();
   const { hasApiKey } = useApiKey();
   const usage = useUsageInfo();
   const wake = useWakeWord({ onWake: () => agent.startListening() });
   const devView = useDevView();
+
+  const liveMode = engine === 'live';
+
+  // Map the Live session status onto the orb's TurnState vocabulary
+  // (connecting/error fall back to idle for the orb visual).
+  const liveOrbState =
+    live.status === 'listening' || live.status === 'thinking' || live.status === 'speaking'
+      ? live.status
+      : 'idle';
+
+  // The trace + state the dev panel / orb read depend on the active engine, so
+  // the side-by-side latency comparison works for whichever backend is live.
+  const activeTrace = liveMode ? live.trace : agent.trace;
 
   const [railOpen, setRailOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -52,7 +70,24 @@ export default function StagePage() {
     applyVoiceHint(persona.voiceHint);
   }, [persona.voiceHint, applyVoiceHint, agent.speech.voices.length]);
 
+  // Switching engines must quiet the path we're leaving so the two backends
+  // never run at once. Classic stays the default and is untouched in behavior.
+  const switchEngine = (next: typeof engine) => {
+    if (next === engine) return;
+    if (next === 'live') {
+      agent.stopAll(); // silence the hand-built pipeline
+    } else {
+      live.disconnect(); // close the Live socket + mic
+    }
+    setEngine(next);
+  };
+
   const orbClick = () => {
+    if (liveMode) {
+      if (live.connected) live.disconnect();
+      else void live.connect();
+      return;
+    }
     if (agent.state === 'idle') agent.startListening();
     else agent.stopAll();
   };
@@ -94,7 +129,8 @@ export default function StagePage() {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {agent.micSupported && (
+          <EngineToggle engine={engine} onChange={switchEngine} />
+          {agent.micSupported && !liveMode && (
             <ModeToggle handsFree={agent.handsFree} onChange={agent.setHandsFree} />
           )}
           <VoiceQuickSelect speech={agent.speech} />
@@ -143,24 +179,87 @@ export default function StagePage() {
         <section className="flex-1 flex flex-col min-w-0">
           {/* Center stage */}
           <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 overflow-y-auto">
-            <VoiceOrb state={agent.state} onClick={orbClick} />
+            {liveMode ? (
+              <>
+                <VoiceOrb state={liveOrbState} onClick={orbClick} />
 
-            <StatusPill state={agent.state} tool={agent.activeTool} />
+                <p className="text-sm font-medium text-cyan-100/90">
+                  {live.status === 'connecting'
+                    ? 'Connecting to Gemini Live…'
+                    : live.status === 'listening'
+                      ? 'Listening — just talk'
+                      : live.status === 'thinking'
+                        ? 'Thinking…'
+                        : live.status === 'speaking'
+                          ? 'Speaking…'
+                          : 'Native Live API — tap the orb to connect'}
+                </p>
 
-            <LiveCaptions interim={agent.interim} reply={agent.partialReply} />
+                {live.transcript && (
+                  <p className="max-w-md text-center text-sm text-cyan-200/70">
+                    {live.transcript}
+                  </p>
+                )}
 
-            {agent.error && (
-              <p className="text-sm text-rose-400 max-w-md text-center bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-2">
-                {agent.error}
-              </p>
-            )}
+                <p className="max-w-md text-center text-xs text-cyan-200/40">
+                  Realtime PCM audio streamed directly to Gemini over WebSocket.
+                  Connecting opens a live socket (uses the shared TPM budget).
+                </p>
 
-            {showStarters && (
-              <StarterPrompts prompts={persona.starterPrompts} onPick={agent.submitText} />
+                {live.error && (
+                  <p className="text-sm text-rose-400 max-w-md text-center bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-2">
+                    {live.error}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <VoiceOrb state={agent.state} onClick={orbClick} />
+
+                <StatusPill state={agent.state} tool={agent.activeTool} />
+
+                <LiveCaptions interim={agent.interim} reply={agent.partialReply} />
+
+                {agent.error && (
+                  <p className="text-sm text-rose-400 max-w-md text-center bg-rose-500/10 border border-rose-500/30 rounded-lg px-4 py-2">
+                    {agent.error}
+                  </p>
+                )}
+
+                {showStarters && (
+                  <StarterPrompts prompts={persona.starterPrompts} onPick={agent.submitText} />
+                )}
+              </>
             )}
           </div>
 
-          {/* ---- Bottom dock (persistent) --------------------------------- */}
+          {/* ---- Bottom dock --------------------------------------------- */}
+          {liveMode ? (
+            <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 py-3">
+              <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+                <span className="text-xs text-cyan-200/60">
+                  {live.connected
+                    ? `Connected · ${live.tokens} tokens this session`
+                    : 'Disconnected'}
+                </span>
+                <button
+                  onClick={() => (live.connected ? live.disconnect() : void live.connect())}
+                  disabled={live.status === 'connecting'}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition disabled:opacity-40 ${
+                    live.connected
+                      ? 'bg-rose-500/80 text-white hover:bg-rose-500'
+                      : 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-400 hover:to-teal-400'
+                  }`}
+                >
+                  {live.status === 'connecting'
+                    ? 'Connecting…'
+                    : live.connected
+                      ? 'Disconnect'
+                      : 'Connect'}
+                </button>
+              </div>
+            </div>
+          ) : (
           <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 py-3">
             <HeadsetTipBanner active={headsetTipActive} />
             <div className="mx-auto flex max-w-2xl items-center gap-3 pt-2">
@@ -190,12 +289,13 @@ export default function StagePage() {
               </button>
             </div>
           </div>
+          )}
         </section>
 
         {/* ---- Under-the-hood dev panel (opt-in, collapsible) ------------- */}
         {devView.enabled && (
           <div className="w-full max-w-sm shrink-0 border-l border-white/10 hidden md:block">
-            <DevPanel trace={agent.trace} onClose={() => devView.setEnabled(false)} />
+            <DevPanel trace={activeTrace} onClose={() => devView.setEnabled(false)} />
           </div>
         )}
       </div>

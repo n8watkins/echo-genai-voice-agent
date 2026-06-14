@@ -2,6 +2,13 @@
 
 > Zero-context handoff for **Echo**, a realtime voice agent. Read this in full before working. Don't re-ask decisions recorded here. Portfolio-wide context: `../../HANDOFF.md`. Build plan: `../../VOICE_AGENT_PLAN.md`.
 
+## ⚠️ Update — 2026-06-14 (session #2) — read `../../HANDOFF.md` for the full picture
+The sections below are from session #1 and are partly stale. Current truth:
+- **SHIPPED PUBLIC** at `github.com/n8watkins/echo-genai-voice-agent`; `master` (@ `7d81169`) tracks `origin`, clean. (Ignore older "not pushed / no remote / branch `ui-app-shell-retrofit`" notes below.)
+- Local dir is now **`echo/`** (was `voice-agent/`).
+- Added on master since: **favicon + OG cards**, a **Gemini model picker** (`MODELS` + server `pickModel` gate in `src/lib/gemini.ts`; shared key = `gemini-3.1-flash-lite` only, rest BYOK-only), and an **"Under the hood" dev panel** (CPU-chip toggle → `src/components/DevPanel.tsx`, telemetry in `src/lib/devtrace.ts`). 44 tests green.
+- **🔧 IN FLIGHT — branch `live-mode` (`85236ac`, NOT merged):** an optional **Gemini Live API native-voice engine** alongside the Classic browser pipeline. Build/test/lint green (49 tests), Classic untouched, but **QA found 2 fixes needed** — see Next Steps #1 in `../../HANDOFF.md` (continuous mic streaming in `src/hooks/useLiveSession.ts:280`; clearer "Start conversation" CTA). To continue: `git checkout live-mode`. **Needs manual Chrome+mic QA before merge.**
+
 ## What this is
 Talk to an AI and it talks back — streamed, interruptible, with tools. The thesis (and blog): *the model was the easy part; the 800 milliseconds were the hard part.*
 

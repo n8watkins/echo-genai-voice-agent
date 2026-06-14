@@ -183,22 +183,37 @@ export default function StagePage() {
               <>
                 <VoiceOrb state={liveOrbState} onClick={orbClick} />
 
-                <p className="text-sm font-medium text-cyan-100/90">
-                  {live.status === 'connecting'
-                    ? 'Connecting to Gemini Live…'
-                    : live.status === 'listening'
-                      ? 'Listening — just talk'
-                      : live.status === 'thinking'
+                {live.status === 'connecting' ? (
+                  <p className="text-sm font-medium text-cyan-100/90">Connecting to Gemini Live…</p>
+                ) : live.connected ? (
+                  <>
+                    <p className="text-sm font-medium text-cyan-100/90">
+                      {live.status === 'thinking'
                         ? 'Thinking…'
                         : live.status === 'speaking'
-                          ? 'Speaking…'
-                          : 'Native Live API — tap the orb to connect'}
-                </p>
-
-                {live.transcript && (
-                  <p className="max-w-md text-center text-sm text-cyan-200/70">
-                    {live.transcript}
-                  </p>
+                          ? 'Speaking… — talk over Echo to cut in'
+                          : 'Listening — just talk (talk over Echo to interrupt)'}
+                    </p>
+                    {live.transcript && (
+                      <p className="max-w-md text-center text-sm text-cyan-200/70">
+                        {live.transcript}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => void live.connect()}
+                      className="rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:from-cyan-400 hover:to-teal-400"
+                    >
+                      Start conversation
+                    </button>
+                    <p className="max-w-md text-center text-sm text-cyan-100/80">
+                      Real-time voice using Gemini&rsquo;s native audio. Once you start, just talk
+                      &mdash; it listens continuously and you can <strong>talk over it to
+                      interrupt</strong>, like a phone call. Headphones recommended.
+                    </p>
+                  </>
                 )}
 
                 <p className="max-w-md text-center text-xs text-cyan-200/40">

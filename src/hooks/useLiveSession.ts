@@ -83,6 +83,9 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
   const outputCtxRef = useRef<AudioContext | null>(null);
   // Next time (in output AudioContext clock) at which to schedule a chunk.
   const playheadRef = useRef(0);
+  // Output source nodes scheduled but not yet finished — tracked so a barge-in
+  // can actually stop in-flight audio (resetting the playhead alone doesn't).
+  const scheduledNodesRef = useRef<AudioBufferSourceNode[]>([]);
   // Guards against late callbacks after a disconnect.
   const closedRef = useRef(false);
 
@@ -142,6 +145,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     micStreamRef.current = null;
     inputCtxRef.current = null;
     outputCtxRef.current = null;
+    scheduledNodesRef.current = [];
     playheadRef.current = 0;
   }, []);
 
@@ -176,6 +180,27 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     const startAt = Math.max(ctx.currentTime, playheadRef.current);
     node.start(startAt);
     playheadRef.current = startAt + buffer.duration;
+    // Track the node so a barge-in can stop it; drop it once it finishes.
+    scheduledNodesRef.current.push(node);
+    node.onended = () => {
+      scheduledNodesRef.current = scheduledNodesRef.current.filter((n) => n !== node);
+    };
+  }, []);
+
+  // Cut off all scheduled/in-flight output audio immediately (barge-in). The
+  // `interrupted` server signal means the user is talking over Echo — stop the
+  // queued buffers so they actually hear themselves take the floor.
+  const stopPlayback = useCallback(() => {
+    for (const node of scheduledNodesRef.current) {
+      try {
+        node.onended = null;
+        node.stop();
+      } catch {
+        /* already stopped/ended */
+      }
+    }
+    scheduledNodesRef.current = [];
+    if (outputCtxRef.current) playheadRef.current = outputCtxRef.current.currentTime;
   }, []);
 
   // ---- Incoming server messages -------------------------------------------
@@ -239,13 +264,14 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
         turnTotalRecordedRef.current = false;
         transitionTo('listening');
       }
-      // Interrupted (barge-in): stop scheduling, reset the playhead.
-      if (content?.interrupted && outputCtxRef.current) {
-        playheadRef.current = outputCtxRef.current.currentTime;
+      // Interrupted (barge-in): cut off in-flight audio immediately so the user
+      // can actually talk over Echo, then return to listening.
+      if (content?.interrupted) {
+        stopPlayback();
         transitionTo('listening');
       }
     },
-    [enqueueAudio, pushTrace, transitionTo]
+    [enqueueAudio, stopPlayback, pushTrace, transitionTo]
   );
 
   // ---- Mic capture: stream PCM16@16k to the session -----------------------

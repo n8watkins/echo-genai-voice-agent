@@ -243,8 +243,8 @@ Ports are deconflicted by design:
 |---|---|
 | net-trailers | 3000 |
 | gemini-chat-app | 5000 |
-| agentic-researcher (Scout) | 3100 |
-| **voice-agent (Echo)** | **3200** |
+| scout (Scout) | 3100 |
+| **echo (Echo)** | **3200** |
 
 ---
 

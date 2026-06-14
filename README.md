@@ -44,6 +44,18 @@ the hard part.** The long version is in the blog posts below.
 - 🗣️ **Wake word (optional, on-device)** — say *"Computer"* to start a turn
   hands-free, detected locally with Picovoice Porcupine. Off by default; opt-in
   via env key.
+- 🔀 **Two voice engines, one toggle** — **Classic** (the default, hand-built
+  pipeline above) or **Live**: Gemini's native Live API. Live connects the
+  browser *directly* to Gemini over a WebSocket for native PCM speech-to-speech
+  with server-side VAD and barge-in. See
+  [Classic vs. Live](#classic-vs-live-two-voice-engines).
+- 🔬 **"Under the hood" dev panel** — a CPU-chip toggle opens a live **latency
+  waterfall** (STT → model first-token → per-sentence TTS → turn-total), plus
+  tokens, tool calls, and the turn-state timeline. The 800ms budget made
+  literal — and it runs for *both* engines.
+- 🎚️ **Model picker** — swap the text/tool model from Settings. The shared demo
+  key runs `gemini-3.1-flash-lite`; 2.5 / 3 / 3.5 Flash variants unlock with
+  your own key.
 
 ## Why it's interesting
 
@@ -56,12 +68,14 @@ speaker. None of it is the LLM. That's the whole point of the project.
 
 ## Architecture overview
 
-Voice runs **entirely in the browser**. The only server round-trip is the model's
-text, streamed back over **SSE** — so the transport is one-directional and simple,
-an honest contrast to the WebSockets I used in my
-[gemini-chat-app](../gemini-chat-app).
+Echo ships **two voice engines** behind a Classic | Live toggle. **Classic** (the
+default) is the hand-built pipeline below: voice runs **entirely in the browser**
+and the only server round-trip is the model's text, streamed back over **SSE** — so
+the transport is one-directional and simple, an honest contrast to the WebSockets I
+used in my [gemini-chat-app](../gemini-chat-app). **Live** is Gemini's native Live
+API and inverts that (see [Classic vs. Live](#classic-vs-live-two-voice-engines)).
 
-### The pipeline (STT → SSE → chunker → TTS)
+### The pipeline (STT → SSE → chunker → TTS) — Classic engine
 
 ```mermaid
 flowchart LR
@@ -106,6 +120,29 @@ stateDiagram-v2
 The orchestrator (`src/hooks/useVoiceAgent.ts`) dispatches events into this
 machine and never asks "wait, what were we doing?"
 
+### Classic vs. Live (two voice engines)
+
+The Classic | Live toggle swaps the entire voice backend underneath the same UI.
+They're deliberately opposite in shape, and that's the point of having both:
+
+| | **Classic** (default) | **Live** |
+|---|---|---|
+| STT / TTS | Browser Web Speech API | Native, inside the model |
+| Transport | SSE (text only) | WebSocket, browser ↔ Gemini **directly** |
+| Audio | none server-side | PCM in 16 kHz / out 24 kHz |
+| Turn-taking | Echo's state machine + chunker | Server-side VAD + barge-in signal |
+| Cost | free (STT/TTS in browser) | audio billed **as tokens** |
+
+Live (`src/hooks/useLiveSession.ts`, `src/lib/live.ts`) never gets the raw API
+key: the server mints a **single-use ephemeral token** (`/api/live-token`,
+`ai.authTokens.create`) scoped to the Live model + AUDIO modality, and the browser
+passes that token to `ai.live.connect`. Switching to Live does **not** open a
+socket — you click **Connect** explicitly, so the shared quota is never spent on a
+page load. Live runs on the demo key only for now (BYOK-for-Live is a later
+concern), and because audio-token pricing is unconfirmed, the dev panel reports
+Live in **tokens, not dollars**. The why-this-way reflection is in
+[the lessons post](docs/blog/lessons-and-the-near-future-of-voice.md).
+
 ## Tools
 
 Echo's tools are plain function declarations dispatched in the chat route
@@ -120,7 +157,8 @@ Echo's tools are plain function declarations dispatched in the chat route
 ## Tech stack
 
 **TypeScript · Next.js 16 (App Router) · React 19 · Tailwind v4 · `@google/genai`
-(Gemini `gemini-3.1-flash-lite`) · Web Speech API · Server-Sent Events.**
+(Gemini `gemini-3.1-flash-lite` text/tools + `gemini-3.1-flash-live-preview` for
+the Live engine) · Web Speech API · Server-Sent Events · WebSocket (Live).**
 
 > **SDK note:** Echo uses the current **`@google/genai`** SDK, not the legacy
 > `@google/generative-ai` used by the older gemini-chat-app — cleaner streaming and
@@ -147,7 +185,7 @@ typed input works everywhere.
 | Var | Purpose |
 |---|---|
 | `GEMINI_API_KEY` | Server demo-key fallback (optional; BYOK preferred). |
-| `ECHO_MODEL` | Model id. Defaults to `gemini-3.1-flash-lite`. |
+| `ECHO_MODEL` | Default text/tool model id (the in-app model picker can override per session; BYOK models are server-validated). Defaults to `gemini-3.1-flash-lite`. |
 | `GOOGLE_SEARCH_API_KEY` / `GOOGLE_SEARCH_ENGINE_ID` | Optional — enables the `web_search` tool. Without them, Echo answers from its own knowledge. |
 | `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional — enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
 | `NEXT_PUBLIC_APP_URL`, `PORT` | App URL / port (3200). |
@@ -219,7 +257,9 @@ Three write-ups, close-up to wide-angle:
    the pipeline, speak-as-you-stream, the state machine, barge-in, and the echo
    loop.
 2. **[The model was the easy part](docs/blog/lessons-and-the-near-future-of-voice.md)**
-   — a reflection on the lessons and the tech-choice trade-offs.
+   — a reflection on the lessons and the tech-choice trade-offs, including why I
+   built the pipeline by hand *and then* added the managed Live API beside it, and
+   what the latency waterfall taught me about observability.
 3. **[The state of voice AI](docs/blog/the-state-of-voice-ai.md)** — the wide-angle
    market analysis: the shift to native speech-to-speech, latency as the product,
    cloud vs. on-device, who's building it (OpenAI Realtime, Gemini Live,

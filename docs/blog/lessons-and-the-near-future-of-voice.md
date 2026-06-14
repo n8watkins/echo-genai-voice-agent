@@ -26,7 +26,7 @@ So the honest answers are non-software: **wear headphones** (the speaker output 
 
 - **Browser Web Speech API for STT/TTS.** Free, zero-key, instant — perfect for a no-signup demo. The cost is honesty about the ceiling: it's Chrome/Edge-only, effectively unsupported on iOS Safari, and the default voices are robotic. I documented all of that rather than hiding it.
 - **SSE, not WebSockets, again.** Because STT and TTS run *in the browser*, the only server round-trip is the model's text. That's one-directional, so SSE fits. (My last project reached for WebSockets; this one deliberately didn't. Same skill as before: match the transport to the data flow.)
-- **The escalation path is real, not hand-wavy.** Better voice = Gemini's one-shot TTS (text→audio, far lighter than the streaming Live API) or a dedicated provider (Cartesia for speed, ElevenLabs for naturalness). The native realtime route — Gemini Live, where the model hears and speaks directly — is the "phone call" feel, but it's quota-heavy enough that it belongs behind bring-your-own-key, not on a shared free tier. Knowing *which* upgrade fits *which* constraint was half the design.
+- **The escalation path is real, not hand-wavy.** Better voice = Gemini's one-shot TTS (text→audio, far lighter than the streaming Live API) or a dedicated provider (Cartesia for speed, ElevenLabs for naturalness). The native realtime route — Gemini Live, where the model hears and speaks directly — is the "phone call" feel. I ended up *building* that route too (Lesson 7), kept Classic as the default, and put Live behind an explicit Connect click to protect the shared quota. Knowing *which* upgrade fits *which* constraint was half the design.
 - **On-device wake word via Picovoice Porcupine.** Listening for a trigger word runs locally in the browser (WASM) — low power, and the audio never leaves the device. The right tool versus streaming everything to a cloud recognizer just to catch one word.
 
 ## Lesson 5: a voice agent is boring without a character
@@ -37,9 +37,23 @@ The blunt UX realization: a generic assistant with a mic is *dull*. The cheapest
 
 Because Web Speech is Chrome-only, the text input had to be **first-class**, not a courtesy — a reviewer on Firefox or an iPhone still gets a working app, just typed. That inverted my mental model: the conversation core is text; voice is a layer on top that degrades gracefully when the browser can't support it. Build the thing that always works, then enhance.
 
+## Lesson 7: build the pipeline by hand, *then* reach for the managed primitive
+
+After hand-rolling the whole STT→stream→chunk→TTS loop, I added a second voice engine: Gemini's native **Live API**. You pick it from a Classic | Live toggle, and it's a completely different shape. The browser mints an **ephemeral token** server-side (the raw key never ships), then connects *directly* to Gemini over a WebSocket (`gemini-3.1-flash-live-preview`); raw PCM audio streams up at 16 kHz and back down at 24 kHz, the model's own server-side VAD decides turn boundaries, and **barge-in is a signal the server sends you** — you just stop the audio you've queued. The thing I spent the whole project engineering — the 800ms perceived-latency win, the turn-taking, the interruption — the Live API does *for* you, as a primitive.
+
+So why build the hand version at all? Because doing it by hand is how you understand what the managed API is actually compressing — and how you stay able to *judge* it. With Live side by side, the trade-offs got concrete instead of theoretical. The win is real: lower latency and a genuinely natural voice, because there's no transcribe-then-resynthesize round trip flattening the tone. But it isn't free in the way Classic is. Classic's STT and TTS happen in the browser and cost nothing; Live's audio is **billed as tokens** in both directions, so a feature that was free becomes metered the moment you flip the toggle. That's why Echo keeps Classic as the default, holds Live behind an explicit *Connect* click rather than opening a socket on load, and reports Live's usage in **tokens rather than dollars** — the audio-token rate isn't something I'd state with confidence yet.
+
+The senior-engineering lesson is the sequence, not either choice on its own: build it by hand to learn the domain, then know when to stop hand-rolling and reach for the primitive that's now better than what you'd write. The point of building the loop yourself was never to ship the loop forever — it was to earn the judgment to evaluate the thing that replaces it.
+
+## Lesson 8: you can't tune a latency budget you can't see
+
+"~800ms time-to-first-word" is a nice claim until someone asks *where* the milliseconds actually go. So I built an "under the hood" panel: a live **latency waterfall** that breaks a turn into its stages — STT, model first-token, each sentence's TTS, and the turn-total headline — alongside the token counts, tool calls, and the turn-state timeline. The 800ms budget, made literal, as bars you can read.
+
+Two things fell out of it. First, it turned a slogan into an instrument: the same panel runs for both Classic and Live, so the side-by-side latency comparison is something you *watch*, not something I assert. Second — and this is the part I'd generalize — observability isn't a debugging afterthought for a latency product; it's part of the product surface. When perceived speed *is* the feature, being able to point at where a turn spent its time is how you defend, and keep, the number.
+
 ## Where this sits in AI right now
 
-Realtime conversational voice is the current frontier — OpenAI's Realtime API, Gemini Live, ElevenLabs' agent stack — and the direction is **collapsing the pipeline**: native speech-to-speech models that skip the STT→text→TTS hops entirely, which kills latency and preserves tone, emotion, and interruption that a transcribe-then-resynthesize chain throws away. Echo is the pedagogical version of that: build the pipeline by hand so you understand exactly what the native models are compressing.
+Realtime conversational voice is the current frontier — OpenAI's Realtime API, Gemini Live, ElevenLabs' agent stack — and the direction is **collapsing the pipeline**: native speech-to-speech models that skip the STT→text→TTS hops entirely, which kills latency and preserves tone, emotion, and interruption that a transcribe-then-resynthesize chain throws away. Echo is the pedagogical version of that — and then literally both halves of it: the hand-built pipeline next to a native Live engine you can toggle into, so the thing the native models compress is something you can watch them compress.
 
 ## What it likely means (the grounded version)
 

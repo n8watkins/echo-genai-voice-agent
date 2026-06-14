@@ -9,7 +9,29 @@ export type SSEEvent =
   | { type: 'token'; text: string }
   | { type: 'tool'; name: string }
   | { type: 'done' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  // ---- Telemetry frames (additive; consumed only by the dev panel) --------
+  // These piggyback on the existing stream so the "Under the Hood" panel can
+  // show real model/tool metrics. The product client ignores them; they never
+  // affect token text, tool dispatch, or the done/error contract above.
+  | {
+      type: 'telemetry_model';
+      model: string;
+      phase: string;
+      startedAt: number;
+      endedAt: number;
+      tokensIn: number;
+      tokensOut: number;
+    }
+  | {
+      type: 'telemetry_tool';
+      name: string;
+      args: unknown;
+      ok: boolean;
+      startedAt: number;
+      endedAt: number;
+      rawResult?: unknown;
+    };
 
 /** Encode one event as an SSE `data:` frame. */
 export function encodeSSE(event: SSEEvent): string {

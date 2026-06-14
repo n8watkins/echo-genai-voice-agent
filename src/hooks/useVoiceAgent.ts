@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { transition, type TurnState } from '@/lib/conversation/turnMachine';
 import { SentenceChunker } from '@/lib/conversation/sentenceChunker';
 import { decodeSSE } from '@/lib/sse';
+import { type TraceEvent, estimateCostUsd } from '@/lib/devtrace';
 import { useSpeechRecognition } from './useSpeechRecognition';
 import { useSpeech } from './useSpeech';
 import { useApiKey } from './useApiKey';
@@ -66,6 +67,10 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [log, setLog] = useState<LogTurn[]>([]);
+  // Telemetry for the "Under the Hood" dev panel. Purely observational: the
+  // trace for the most-recent turn, lifted to state so DevPanel can render it.
+  // Nothing here feeds back into the voice pipeline's control flow.
+  const [trace, setTrace] = useState<TraceEvent[]>([]);
 
   const { apiKey } = useApiKey();
   const { model } = useModel();
@@ -83,6 +88,38 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const systemPromptRef = useRef<string | null>(options.systemPrompt ?? null);
   // Timestamp until which barge-in is suppressed (post-TTS cooldown).
   const bargeInBlockedUntilRef = useRef(0);
+
+  // ---- Telemetry refs (observational only) --------------------------------
+  // Accumulates the current turn's TraceEvents before they're flushed to the
+  // `trace` state. Mutating these never alters voice behavior.
+  const traceRef = useRef<TraceEvent[]>([]);
+  // When the user's speech ended (final transcript) — anchors the `stt` stage
+  // and the `turn-total` headline (speech-end -> first audio out).
+  const speechEndAtRef = useRef(0);
+  // When the model request was sent — anchors `model-first-token` timing.
+  const requestSentAtRef = useRef(0);
+  // Whether the first model token has been seen this turn (for model-first-token).
+  const firstTokenSeenRef = useRef(false);
+  // Whether the turn-total headline stage has been recorded (first audio out).
+  const turnTotalRecordedRef = useRef(false);
+  // Count of TTS sentences spoken this turn (for tts-sentence-N labels).
+  const ttsSentenceCountRef = useRef(0);
+
+  // Append a TraceEvent to the current turn and mirror it into state so the
+  // panel updates live. Cheap, no-throw, side-effect-free w.r.t. the pipeline.
+  const pushTrace = useCallback((ev: TraceEvent) => {
+    traceRef.current = [...traceRef.current, ev];
+    setTrace(traceRef.current);
+  }, []);
+
+  // Reset the per-turn trace at the start of a new turn (called from think()).
+  const resetTrace = useCallback(() => {
+    traceRef.current = [];
+    firstTokenSeenRef.current = false;
+    turnTotalRecordedRef.current = false;
+    ttsSentenceCountRef.current = 0;
+    setTrace([]);
+  }, []);
 
   useEffect(() => {
     stateRef.current = state;
@@ -103,12 +140,30 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     systemPromptRef.current = options.systemPrompt ?? null;
   }, [options.systemPrompt]);
 
-  const dispatch = useCallback((event: Parameters<typeof transition>[1]) => {
-    setState((prev) => transition(prev, event, { handsFree: handsFreeRef.current }));
-  }, []);
+  const dispatch = useCallback(
+    (event: Parameters<typeof transition>[1]) => {
+      setState((prev) => {
+        const next = transition(prev, event, { handsFree: handsFreeRef.current });
+        // Telemetry only: record real turn-machine state transitions for the
+        // dev panel. We derive next from the SAME pure reducer used for the
+        // actual state update, so this observes without changing the machine.
+        if (next !== prev) {
+          pushTrace({ kind: 'state', machine: 'turn', from: prev, to: next, at: Date.now() });
+        }
+        return next;
+      });
+    },
+    [pushTrace]
+  );
 
   // ---- Forward declaration via ref so STT callbacks can call think() -------
   const thinkRef = useRef<(text: string) => Promise<void>>(async () => {});
+
+  // Telemetry only: timestamp of the latest interim result. The Web Speech API
+  // doesn't surface a raw `speechend` event through our wrapper, so we
+  // approximate "speech end" as the last interim seen; the gap to the final
+  // transcript is the STT finalization latency shown in the waterfall.
+  const lastInterimAtRef = useRef(0);
 
   // Shared barge-in / interim handler. With the recognizer paused while Echo
   // speaks, this rarely sees Echo's own audio — but it still gates on the
@@ -131,15 +186,26 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
           return;
         }
       }
+      // Telemetry only: remember when the user was last heard speaking.
+      lastInterimAtRef.current = Date.now();
       setInterim(text);
     },
     [speech, dispatch]
   );
 
-  const handleFinal = useCallback((text: string) => {
-    setInterim('');
-    if (text.trim()) void thinkRef.current(text.trim());
-  }, []);
+  const handleFinal = useCallback(
+    (text: string) => {
+      setInterim('');
+      if (text.trim()) {
+        // Telemetry only: anchor the turn timeline at the final transcript.
+        // think() resets the trace then emits the `stt` stage from these refs
+        // (kept here so the anchors survive the reset).
+        speechEndAtRef.current = Date.now();
+        void thinkRef.current(text.trim());
+      }
+    },
+    []
+  );
 
   const handleSttError = useCallback(
     (err: string) => {
@@ -179,6 +245,22 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
       chunkerRef.current.reset();
       speakingStartedRef.current = false;
 
+      // Telemetry only: start a fresh per-turn trace. If the turn began with
+      // speech, speechEndAtRef was set by handleFinal; for typed input we
+      // anchor "turn-total" at think-start instead. Emitting the `stt` stage
+      // here (rather than handleFinal) keeps it from being wiped by the reset.
+      resetTrace();
+      const turnStartAt = speechEndAtRef.current || Date.now();
+      if (speechEndAtRef.current) {
+        pushTrace({
+          kind: 'stage',
+          id: crypto.randomUUID(),
+          label: 'stt',
+          startedAt: lastInterimAtRef.current || speechEndAtRef.current,
+          endedAt: speechEndAtRef.current,
+        });
+      }
+
       const userTurn: LogTurn = { id: crypto.randomUUID(), role: 'user', text: userText };
       setLog((prev) => [...prev, userTurn]);
       dispatch({ type: 'FINAL_TRANSCRIPT' }); // -> thinking
@@ -200,8 +282,33 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
           if (handsFreeRef.current) contRecognition.pause();
           dispatch({ type: 'FIRST_SENTENCE' }); // thinking -> speaking
         }
+        // Telemetry only: per-sentence TTS marker + the turn-total headline
+        // (speech-end -> first audio out). Recorded once at the first sentence.
+        const now = Date.now();
+        ttsSentenceCountRef.current += 1;
+        pushTrace({
+          kind: 'stage',
+          id: crypto.randomUUID(),
+          label: `tts-sentence-${ttsSentenceCountRef.current}`,
+          startedAt: now,
+          endedAt: now,
+        });
+        if (!turnTotalRecordedRef.current) {
+          turnTotalRecordedRef.current = true;
+          pushTrace({
+            kind: 'stage',
+            id: crypto.randomUUID(),
+            label: 'turn-total',
+            startedAt: turnStartAt,
+            endedAt: now,
+          });
+        }
         speech.enqueue(sentence);
       };
+
+      // Telemetry only: mark when the model request leaves the client so the
+      // dev panel can show first-token latency (request sent -> first token).
+      requestSentAtRef.current = Date.now();
 
       try {
         const res = await fetch('/api/chat', {
@@ -240,6 +347,17 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
 
           for (const ev of events) {
             if (ev.type === 'token') {
+              // Telemetry only: the first token closes the first-token stage.
+              if (!firstTokenSeenRef.current) {
+                firstTokenSeenRef.current = true;
+                pushTrace({
+                  kind: 'stage',
+                  id: crypto.randomUUID(),
+                  label: 'model-first-token',
+                  startedAt: requestSentAtRef.current,
+                  endedAt: Date.now(),
+                });
+              }
               assembled += ev.text;
               setPartialReply(assembled);
               // Chunker tolerates the tool-call gap: it just keeps buffering.
@@ -252,6 +370,42 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
               setError(ev.message);
             } else if (ev.type === 'done') {
               for (const sentence of chunkerRef.current.flush()) speakChunk(sentence);
+            } else if (ev.type === 'telemetry_model') {
+              // Telemetry only: merge the server's per-call model metrics into
+              // the turn trace as a model_call event, plus a model-complete
+              // stage (first token -> server end-of-stream).
+              pushTrace({
+                kind: 'model_call',
+                id: crypto.randomUUID(),
+                phase: ev.phase,
+                model: ev.model,
+                startedAt: ev.startedAt,
+                endedAt: ev.endedAt,
+                tokensIn: ev.tokensIn,
+                tokensOut: ev.tokensOut,
+                costUsd: estimateCostUsd(ev.model, ev.tokensIn, ev.tokensOut),
+                prompt: userText,
+                rawResponse: assembled,
+              });
+              pushTrace({
+                kind: 'stage',
+                id: crypto.randomUUID(),
+                label: 'model-complete',
+                startedAt: requestSentAtRef.current,
+                endedAt: ev.endedAt,
+              });
+            } else if (ev.type === 'telemetry_tool') {
+              // Telemetry only: merge the server's per-tool metrics.
+              pushTrace({
+                kind: 'tool_exec',
+                id: crypto.randomUUID(),
+                name: ev.name,
+                args: ev.args,
+                startedAt: ev.startedAt,
+                endedAt: ev.endedAt,
+                ok: ev.ok,
+                rawResult: ev.rawResult,
+              });
             }
           }
         }
@@ -276,7 +430,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
         dispatch({ type: 'ERROR' });
       }
     },
-    [dispatch, speech, contRecognition]
+    [dispatch, speech, contRecognition, pushTrace, resetTrace]
   );
 
   useEffect(() => {
@@ -383,6 +537,8 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     error,
     log,
     micSupported,
+    // telemetry (dev panel) — the most-recent turn's trace
+    trace,
     // tts controls/info
     speech,
     // controls

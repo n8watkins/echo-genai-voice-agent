@@ -126,6 +126,10 @@ export async function POST(req: NextRequest) {
           // can fire up to MAX_TOOL_ROUNDS of these against the demo key.
           recordModelCall(resolved.source);
 
+          // Telemetry only: mark when this model call started so the dev panel
+          // can show real latency. Does not affect the call itself.
+          const modelStartedAt = Date.now();
+
           const result = await ai.models.generateContentStream({
             model,
             contents,
@@ -141,11 +145,21 @@ export async function POST(req: NextRequest) {
           // Gemini 3's `thoughtSignature` on functionCall parts — without it,
           // sending the call back for the tool-result round is rejected (400).
           const modelParts: Part[] = [];
+          // Telemetry only: token counts arrive on the stream's final chunk's
+          // usageMetadata; we keep the latest seen so the dev panel can show
+          // tokens + estimated $. Never read by the product logic.
+          let tokensIn = 0;
+          let tokensOut = 0;
 
           for await (const chunk of result) {
             const text = chunk.text;
             if (text) {
               send(encodeSSE({ type: 'token', text }));
+            }
+            const usage = chunk.usageMetadata;
+            if (usage) {
+              tokensIn = usage.promptTokenCount ?? tokensIn;
+              tokensOut = usage.candidatesTokenCount ?? tokensOut;
             }
             const parts = chunk.candidates?.[0]?.content?.parts;
             if (parts) {
@@ -161,6 +175,19 @@ export async function POST(req: NextRequest) {
             }
           }
 
+          // Telemetry frame for this model call (additive; ignored by product).
+          send(
+            encodeSSE({
+              type: 'telemetry_model',
+              model,
+              phase: 'chat-turn',
+              startedAt: modelStartedAt,
+              endedAt: Date.now(),
+              tokensIn,
+              tokensOut,
+            })
+          );
+
           if (pendingCalls.length === 0) {
             // Plain answer, no tools — we're done.
             break;
@@ -173,10 +200,25 @@ export async function POST(req: NextRequest) {
           const responseParts: Part[] = [];
           for (const call of pendingCalls) {
             send(encodeSSE({ type: 'tool', name: call.name }));
+            const toolStartedAt = Date.now();
             const output = await dispatchTool(call.name, call.args);
             responseParts.push({
               functionResponse: { name: call.name, response: output },
             });
+            // Telemetry frame for this tool exec (additive; product ignores it).
+            // dispatchTool never throws (it catches and returns { error }), so
+            // we infer ok from the absence of an `error` key in the result.
+            send(
+              encodeSSE({
+                type: 'telemetry_tool',
+                name: call.name,
+                args: call.args,
+                ok: !(output && typeof output === 'object' && 'error' in output),
+                startedAt: toolStartedAt,
+                endedAt: Date.now(),
+                rawResult: output,
+              })
+            );
           }
           contents.push({ role: 'user', parts: responseParts });
           // loop again — model continues with tool results

@@ -6,6 +6,7 @@ import {
   PaperAirplaneIcon,
   Cog6ToothIcon,
   ChatBubbleLeftRightIcon,
+  CpuChipIcon,
 } from '@heroicons/react/24/outline';
 import { useVoiceAgent } from '@/hooks/useVoiceAgent';
 import { useOnboarding } from '@/hooks/useOnboarding';
@@ -13,6 +14,8 @@ import { useApiKey } from '@/hooks/useApiKey';
 import { useUsageInfo } from '@/hooks/useUsageInfo';
 import { usePersona } from '@/hooks/usePersona';
 import { useWakeWord } from '@/hooks/useWakeWord';
+import { useDevView } from '@/hooks/useDevView';
+import DevPanel from '@/components/DevPanel';
 import VoiceOrb from '@/components/VoiceOrb';
 import StatusPill from '@/components/StatusPill';
 import LiveCaptions from '@/components/LiveCaptions';
@@ -35,6 +38,7 @@ export default function StagePage() {
   const { hasApiKey } = useApiKey();
   const usage = useUsageInfo();
   const wake = useWakeWord({ onWake: () => agent.startListening() });
+  const devView = useDevView();
 
   const [railOpen, setRailOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -95,6 +99,19 @@ export default function StagePage() {
           )}
           <VoiceQuickSelect speech={agent.speech} />
           <UsagePill usage={usage} />
+          <button
+            onClick={devView.toggle}
+            aria-label="Toggle under-the-hood dev view"
+            aria-pressed={devView.enabled}
+            title="Under the hood — show the live telemetry panel"
+            className={`p-2 rounded-lg transition ${
+              devView.enabled
+                ? 'bg-cyan-500/15 text-cyan-200'
+                : 'hover:bg-white/5 text-cyan-200/70 hover:text-cyan-100'
+            }`}
+          >
+            <CpuChipIcon className="w-5 h-5" />
+          </button>
           <button
             onClick={() => setSettingsOpen(true)}
             className="p-2 rounded-lg hover:bg-white/5 text-cyan-200/70 hover:text-cyan-100 transition"
@@ -174,6 +191,13 @@ export default function StagePage() {
             </div>
           </div>
         </section>
+
+        {/* ---- Under-the-hood dev panel (opt-in, collapsible) ------------- */}
+        {devView.enabled && (
+          <div className="w-full max-w-sm shrink-0 border-l border-white/10 hidden md:block">
+            <DevPanel trace={agent.trace} onClose={() => devView.setEnabled(false)} />
+          </div>
+        )}
       </div>
 
       {/* ---- Drawers + modals --------------------------------------------- */}

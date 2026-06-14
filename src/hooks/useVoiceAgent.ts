@@ -124,6 +124,16 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+  // Telemetry only: emit a 'state' trace event on each committed turn-machine
+  // transition. Observed via effect (never inside the reducer) so it can't nest
+  // a state update or alter the machine.
+  const traceStateRef = useRef<TurnState>(state);
+  useEffect(() => {
+    if (state !== traceStateRef.current) {
+      pushTrace({ kind: 'state', machine: 'turn', from: traceStateRef.current, to: state, at: Date.now() });
+      traceStateRef.current = state;
+    }
+  }, [state, pushTrace]);
   useEffect(() => {
     handsFreeRef.current = handsFree;
   }, [handsFree]);
@@ -140,21 +150,9 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     systemPromptRef.current = options.systemPrompt ?? null;
   }, [options.systemPrompt]);
 
-  const dispatch = useCallback(
-    (event: Parameters<typeof transition>[1]) => {
-      setState((prev) => {
-        const next = transition(prev, event, { handsFree: handsFreeRef.current });
-        // Telemetry only: record real turn-machine state transitions for the
-        // dev panel. We derive next from the SAME pure reducer used for the
-        // actual state update, so this observes without changing the machine.
-        if (next !== prev) {
-          pushTrace({ kind: 'state', machine: 'turn', from: prev, to: next, at: Date.now() });
-        }
-        return next;
-      });
-    },
-    [pushTrace]
-  );
+  const dispatch = useCallback((event: Parameters<typeof transition>[1]) => {
+    setState((prev) => transition(prev, event, { handsFree: handsFreeRef.current }));
+  }, []);
 
   // ---- Forward declaration via ref so STT callbacks can call think() -------
   const thinkRef = useRef<(text: string) => Promise<void>>(async () => {});

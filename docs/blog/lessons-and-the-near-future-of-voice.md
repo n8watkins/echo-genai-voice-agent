@@ -46,3 +46,9 @@ Realtime conversational voice is the current frontier — OpenAI's Realtime API,
 Voice is moving from **command** (Siri/Alexa: say the magic words, get one action) to **conversation** (interrupt, change your mind, be understood in context). As latency and turn-taking get solved — and they're getting solved fast — voice agents will feel genuinely human in *narrow* domains first: front-line phone support, scheduling, in-car and other hands-busy/eyes-busy settings.
 
 The most underrated impact is **accessibility**: a conversational interface is a real unlock for people with vision impairments, limited literacy, or motor constraints — bigger, quietly, than the customer-support cost savings everyone leads with. The flip side worth keeping honest about: "feels human" and "always listening" are the same capability viewed from two angles, and the privacy and trust questions (what's recorded, when it's listening, whether you can tell you're talking to a machine) get sharper exactly as the experience gets smoother. The engineering that makes it pleasant is the same engineering that makes those questions urgent.
+
+---
+
+*For the grounded market analysis — speech-to-speech models, the latency budget, cloud
+vs. on-device, and who's actually building it — see [The state of voice AI](./the-state-of-voice-ai.md).
+The latency build-log is [The 800ms Problem](./the-800ms-problem.md).*

@@ -168,5 +168,8 @@ that decide whether you'd ever want it to.
 
 ---
 
+*More reading: the reflection in [The model was the easy part](./lessons-and-the-near-future-of-voice.md),
+and the wider market take in [The state of voice AI](./the-state-of-voice-ai.md).*
+
 *Echo is open source — read the [turn-taking state machine](../../src/lib/conversation/turnMachine.ts)
 and the [sentence chunker](../../src/lib/conversation/sentenceChunker.ts).*

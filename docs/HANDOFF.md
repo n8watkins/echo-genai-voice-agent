@@ -4,10 +4,10 @@
 
 ## ⚠️ Update — 2026-06-14 (session #2) — read `../../HANDOFF.md` for the full picture
 The sections below are from session #1 and are partly stale. Current truth:
-- **SHIPPED PUBLIC** at `github.com/n8watkins/echo-genai-voice-agent`; `master` (@ `7d81169`) tracks `origin`, clean. (Ignore older "not pushed / no remote / branch `ui-app-shell-retrofit`" notes below.)
+- **SHIPPED PUBLIC** at `github.com/n8watkins/echo-genai-voice-agent`; `master` (@ `8bb97ac`) tracks `origin`, clean. (Ignore older "not pushed / no remote / branch `ui-app-shell-retrofit`" notes below.)
 - Local dir is now **`echo/`** (was `voice-agent/`).
-- Added on master since: **favicon + OG cards**, a **Gemini model picker** (`MODELS` + server `pickModel` gate in `src/lib/gemini.ts`; shared key = `gemini-3.1-flash-lite` only, rest BYOK-only), and an **"Under the hood" dev panel** (CPU-chip toggle → `src/components/DevPanel.tsx`, telemetry in `src/lib/devtrace.ts`). 44 tests green.
-- **🔧 IN FLIGHT — branch `live-mode` (`85236ac`, NOT merged):** an optional **Gemini Live API native-voice engine** alongside the Classic browser pipeline. Build/test/lint green (49 tests), Classic untouched, but **QA found 2 fixes needed** — see Next Steps #1 in `../../HANDOFF.md` (continuous mic streaming in `src/hooks/useLiveSession.ts:280`; clearer "Start conversation" CTA). To continue: `git checkout live-mode`. **Needs manual Chrome+mic QA before merge.**
+- Added on master since: **favicon + OG cards**, a **Gemini model picker** (`MODELS` + server `pickModel` gate in `src/lib/gemini.ts`; shared key = `gemini-3.1-flash-lite` only, rest BYOK-only), an **"Under the hood" dev panel** (CPU-chip toggle → `src/components/DevPanel.tsx`, telemetry in `src/lib/devtrace.ts`), and README + lessons-blog sync.
+- **✅ MERGED — native Gemini Live API voice engine** ("Live" vs "Classic" via a top-bar `EngineToggle`): ephemeral token (`src/app/api/live-token/route.ts`) → direct browser↔Gemini WebSocket → native PCM audio + server-side VAD/barge-in. Engine in `src/hooks/useLiveSession.ts` (barge-in stops in-flight audio via `stopPlayback()` on `interrupted`); Classic path (`useVoiceAgent`) untouched + still the default. 49 tests green. **Merged before manual QA (user's call) — still needs a Chrome+mic QA pass; see `../../QA_TESTING.md` (Live-mode barge-in is the top item).**
 
 ## What this is
 Talk to an AI and it talks back — streamed, interruptible, with tools. The thesis (and blog): *the model was the easy part; the 800 milliseconds were the hard part.*

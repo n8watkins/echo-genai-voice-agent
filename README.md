@@ -267,11 +267,22 @@ Three write-ups, close-up to wide-angle:
 
 ## Deploying (Render free tier)
 
+A ready-to-use **Render Blueprint** lives at [`render.yaml`](render.yaml): in the
+dashboard pick **New + → Blueprint**, point it at this repo, and Apply — it sets the
+build/start commands, health check, and env-var stubs below for you. Or configure a
+Web Service by hand:
+
 - **Build:** `npm install && npm run build`
-- **Start:** `npm run start` (binds to `PORT`, defaults to 3200)
+- **Start:** `npx next start -p $PORT` — Render injects `$PORT`; the script's local
+  `next start -p 3200` hardcodes 3200, so on Render bind to `$PORT` instead.
+- **Health check path:** `/api/healthz` (also the URL to point an uptime pinger at).
 - Set `GEMINI_API_KEY` in the Render dashboard (never commit it).
-- Free instances spin down when idle and cold-start in ~30s — fine for a portfolio
-  demo. Transcripts are intentionally ephemeral.
+- Free instances spin down after ~15 min idle and cold-start in ~1 min — fine for a
+  portfolio demo. The free tier shares **750 instance-hours/month per workspace**, so
+  keeping several services warm 24/7 exhausts it; keep one warm (e.g. an UptimeRobot
+  HTTP monitor hitting `/api/healthz` every 5 min) and let the rest cold-start, or
+  upgrade the always-on ones to a paid instance. Transcripts are intentionally
+  ephemeral.
 - Because STT/TTS are browser-side, there's no audio infrastructure to provision;
   the server only proxies the model stream.
 

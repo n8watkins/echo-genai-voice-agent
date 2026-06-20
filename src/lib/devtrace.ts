@@ -7,8 +7,8 @@
  * of this changes the voice pipeline's behavior — events are recorded
  * alongside the existing logic.
  *
- * Cross-app design lives in examples/UNDER_THE_HOOD_PLAN.md (§3 schema, §6
- * pricing). Echo only emits text-model calls; the $ estimate applies only to
+ * Design spec lives in docs/UNDER_THE_HOOD.md (§3 schema, §6 pricing). Echo
+ * only emits text-model calls; the $ estimate applies only to
  * the models in the pricing table below.
  */
 
@@ -58,7 +58,7 @@ export type TraceEvent =
     };
 
 /**
- * Per-1M-token paid rates (UNDER_THE_HOOD_PLAN.md §6, verified 2026-06-14).
+ * Per-1M-token paid rates (docs/UNDER_THE_HOOD.md §6, verified 2026-06-14).
  * Used only for the illustrative "what this would cost at scale" readout — the
  * live demo runs on the free tier. Live/audio models are intentionally absent:
  * audio-token pricing is unconfirmed, so those modes show tokens + TPM

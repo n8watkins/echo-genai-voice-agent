@@ -3,7 +3,7 @@
 import type { VoiceEngine } from '@/hooks/useVoiceEngine';
 
 /**
- * Segmented Classic | Live toggle for the top bar (UNDER_THE_HOOD_PLAN.md §4d).
+ * Segmented Classic | Live toggle for the top bar (docs/UNDER_THE_HOOD.md §4d).
  * Switches the voice backend underneath the same UI: the hand-built pipeline
  * vs. Gemini's native Live API. Switching to Live does NOT open a socket — the
  * user still has to click Connect on the stage (TPM budget).

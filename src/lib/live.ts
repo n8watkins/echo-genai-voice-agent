@@ -1,7 +1,7 @@
 /**
  * Shared constants + audio helpers for the native Live API voice engine.
  *
- * The Live API is PCM end-to-end (UNDER_THE_HOOD_PLAN.md §4d / probe notes):
+ * The Live API is PCM end-to-end (docs/UNDER_THE_HOOD.md §4d / §7 probe notes):
  *  - mic input: 16-bit signed PCM, mono, 16 kHz, sent as base64 in
  *    `sendRealtimeInput({ audio: { data, mimeType: 'audio/pcm;rate=16000' } })`
  *  - model output: 16-bit signed PCM, mono, 24 kHz, arrives base64 on

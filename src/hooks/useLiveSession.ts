@@ -18,7 +18,7 @@ import {
 } from '@/lib/live';
 
 /**
- * Mode B — the native Gemini Live API voice engine (UNDER_THE_HOOD_PLAN.md
+ * Mode B — the native Gemini Live API voice engine (docs/UNDER_THE_HOOD.md
  * §4d). A PARALLEL code path to the hand-built useVoiceAgent pipeline; the two
  * never run at once (the engine toggle picks one). This hook owns the entire
  * Live lifecycle:

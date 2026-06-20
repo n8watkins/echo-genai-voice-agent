@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * Ephemeral-token mint for the native Live API voice engine (Mode B).
  *
  * The browser connects DIRECTLY to Gemini over WebSocket for lowest latency
- * (UNDER_THE_HOOD_PLAN.md §4d), so it needs a credential — but the raw demo
+ * (docs/UNDER_THE_HOOD.md §4d), so it needs a credential — but the raw demo
  * key must NEVER ship to the client. Instead this server route mints a
  * short-lived, single-use ephemeral token (`ai.authTokens.create`) scoped to
  * the Live model + AUDIO modality, and returns only the token NAME. The token

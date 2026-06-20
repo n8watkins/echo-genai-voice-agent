@@ -5,7 +5,7 @@ import { ChevronDownIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { type TraceEvent, hasPricing } from '@/lib/devtrace';
 
 /**
- * "Under the Hood" telemetry panel for Echo (UNDER_THE_HOOD_PLAN.md §4).
+ * "Under the Hood" telemetry panel for Echo (docs/UNDER_THE_HOOD.md §4).
  *
  * Opt-in, purely observational: renders the most-recent turn's TraceEvent[]
  * as (a) a latency waterfall with the turn-total headline, (b) the turn-state

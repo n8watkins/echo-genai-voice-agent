@@ -1,6 +1,6 @@
 # Echo — session handoff
 
-> Zero-context handoff for **Echo**, a realtime voice agent. Read this in full before working. Don't re-ask decisions recorded here. Portfolio-wide context: `../../HANDOFF.md`. Build plan: `VOICE_AGENT_PLAN.md` (this folder).
+> Zero-context handoff for **Echo**, a realtime voice agent. Read this in full before working. Don't re-ask decisions recorded here. Build plan: `VOICE_AGENT_PLAN.md` (this folder).
 
 ## ✅ Audit reconciliation — 2026-06-20
 Re-verified this handoff against the actual repo (git log/branch + file/test checks). Findings folded in below. Headline corrections:
@@ -11,7 +11,7 @@ Re-verified this handoff against the actual repo (git log/branch + file/test che
 - **Doc reorg:** the build plan now lives in this repo at `docs/VOICE_AGENT_PLAN.md` (moved out of the portfolio root); the pointer above is updated. `QA_TESTING.md` stays at the portfolio root (`../../QA_TESTING.md` resolves correctly from here).
 - **Still open / NOT done:** manual Chrome+mic QA of **both** Live mode and Classic voice (merged un-QA'd by the user's call). Deploy + live-demo URL still TODO.
 
-## ⚠️ Update — 2026-06-14 (session #2) — read `../../HANDOFF.md` for the full picture
+## ⚠️ Update — 2026-06-14 (session #2)
 The sections below are from session #1 and are partly stale. Current truth:
 - **SHIPPED PUBLIC** at `github.com/n8watkins/echo-genai-voice-agent`; `master` tracks `origin`, clean. (Audit 2026-06-20: real HEAD is `bb979a5`; the original "@ `8bb97ac`" here was one commit behind.) Ignore older "not pushed / no remote / branch `ui-app-shell-retrofit`" notes in the session-#1 "State" section below — they are superseded: the app is public and `ui-app-shell-retrofit` is long merged.
 - Local dir is now **`echo/`** (was `voice-agent/`).

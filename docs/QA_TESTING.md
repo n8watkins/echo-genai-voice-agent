@@ -48,4 +48,3 @@
 
 ## Findings (fill in during QA)
 - …
-</content>

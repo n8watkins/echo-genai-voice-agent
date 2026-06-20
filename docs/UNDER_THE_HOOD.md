@@ -173,5 +173,3 @@ A throwaway probe against the current `GEMINI_API_KEY` confirmed:
 - **Cost readout** — text models show an estimated $ (table §6). **Live/audio mode
   shows tokens + TPM headroom, NOT a $ figure** (audio pricing unconfirmed; the
   demo is free within TPM anyway).
-</content>
-</invoke>

@@ -133,6 +133,7 @@ They're deliberately opposite in shape, and that's the point of having both:
 | Audio | none server-side | PCM in 16 kHz / out 24 kHz |
 | Turn-taking | Echo's state machine + chunker | Server-side VAD + barge-in signal |
 | Tools / search | weather · time · Tavily web search (function calling) | same tools, via Live `toolCall` → `/api/tool-exec` → `sendToolResponse` |
+| Transcript + text | conversation rail (both sides) + type-to-it | same rail (shared `LogTurn`) + type-to-it (sending interrupts) |
 | Cost | free (STT/TTS in browser) | audio billed **as tokens** |
 
 Live (`src/hooks/useLiveSession.ts`, `src/lib/live.ts`) never gets the raw API

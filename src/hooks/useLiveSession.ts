@@ -9,6 +9,7 @@ import {
   type Session,
 } from '@google/genai';
 import { type TraceEvent } from '@/lib/devtrace';
+import { type LogTurn } from '@/hooks/useVoiceAgent';
 import {
   LIVE_MODEL,
   INPUT_MIME_TYPE,
@@ -55,19 +56,29 @@ export interface UseLiveSession {
   error: string | null;
   /** Most-recent turn's trace, in the shared DevPanel shape. */
   trace: TraceEvent[];
-  /** Output transcript text, if the model returns transcription. */
-  transcript: string;
+  /** Conversation turns (both sides), same shape Classic uses for the rail. */
+  log: LogTurn[];
+  /** The current streaming assistant reply (for the rail + captions). */
+  partialReply: string;
+  /** The current streaming user transcription (live caption). */
+  interim: string;
   /** Approximate total tokens this session (from usageMetadata). */
   tokens: number;
   connect: () => Promise<void>;
   disconnect: () => void;
+  /** Send a typed message (interrupts any in-flight reply). */
+  sendText: (text: string) => void;
+  /** Clear the conversation log (New conversation). */
+  clearLog: () => void;
 }
 
 export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSession {
   const [status, setStatus] = useState<LiveStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [trace, setTrace] = useState<TraceEvent[]>([]);
-  const [transcript, setTranscript] = useState('');
+  const [log, setLog] = useState<LogTurn[]>([]);
+  const [partialReply, setPartialReply] = useState('');
+  const [interim, setInterim] = useState('');
   const [tokens, setTokens] = useState(0);
 
   const systemPromptRef = useRef<string | null>(options.systemPrompt ?? null);
@@ -99,6 +110,11 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
   const turnTotalRecordedRef = useRef(false);
   const tokensRef = useRef(0);
 
+  // ---- Conversation-log refs (build user/assistant turns from transcription) -
+  const logRef = useRef<LogTurn[]>([]);
+  const pendingUserRef = useRef('');
+  const pendingAssistantRef = useRef('');
+
   const pushTrace = useCallback((ev: TraceEvent) => {
     traceRef.current = [...traceRef.current, ev];
     setTrace(traceRef.current);
@@ -121,6 +137,30 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     },
     [pushTrace]
   );
+
+  // ---- Turn-log commit helpers --------------------------------------------
+  // Flush the pending user / assistant transcription into a committed LogTurn.
+  // Called when the speaking role switches, on turnComplete, on barge-in, and on
+  // disconnect — so the look-back transcript stays complete and ordered.
+  const commitUserTurn = useCallback(() => {
+    const text = pendingUserRef.current.trim();
+    pendingUserRef.current = '';
+    setInterim('');
+    if (!text) return;
+    const turn: LogTurn = { id: crypto.randomUUID(), role: 'user', text };
+    logRef.current = [...logRef.current, turn];
+    setLog(logRef.current);
+  }, []);
+
+  const commitAssistantTurn = useCallback(() => {
+    const text = pendingAssistantRef.current.trim();
+    pendingAssistantRef.current = '';
+    setPartialReply('');
+    if (!text) return;
+    const turn: LogTurn = { id: crypto.randomUUID(), role: 'assistant', text };
+    logRef.current = [...logRef.current, turn];
+    setLog(logRef.current);
+  }, []);
 
   // ---- Teardown -----------------------------------------------------------
   const teardownAudio = useCallback(() => {
@@ -152,6 +192,9 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
 
   const disconnect = useCallback(() => {
     closedRef.current = true;
+    // Save any in-flight partial turns so the look-back transcript is complete.
+    commitUserTurn();
+    commitAssistantTurn();
     try {
       sessionRef.current?.close();
     } catch {
@@ -160,7 +203,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     sessionRef.current = null;
     teardownAudio();
     transitionTo('idle');
-  }, [teardownAudio, transitionTo]);
+  }, [teardownAudio, transitionTo, commitUserTurn, commitAssistantTurn]);
 
   // ---- Playback: schedule a base64 PCM@24k chunk on the output context ----
   const enqueueAudio = useCallback((base64: string) => {
@@ -293,9 +336,20 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
         transitionTo('speaking');
       }
 
-      // Output transcription, when the session returns it.
+      // Streaming transcription -> build the conversation log (both sides).
+      // When the speaking role switches, the other side's pending turn is done.
+      const inText = content?.inputTranscription?.text;
+      if (inText) {
+        if (pendingAssistantRef.current) commitAssistantTurn();
+        pendingUserRef.current += inText;
+        setInterim(pendingUserRef.current);
+      }
       const outText = content?.outputTranscription?.text;
-      if (outText) setTranscript((prev) => prev + outText);
+      if (outText) {
+        if (pendingUserRef.current) commitUserTurn();
+        pendingAssistantRef.current += outText;
+        setPartialReply(pendingAssistantRef.current);
+      }
 
       // Token accounting (no $ for audio per §9 — show tokens/TPM headroom).
       const usage = msg.usageMetadata;
@@ -319,18 +373,56 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
 
       // Turn boundary: model finished -> back to listening for the next turn.
       if (content?.turnComplete) {
+        commitUserTurn();
+        commitAssistantTurn();
         turnTotalRecordedRef.current = false;
         transitionTo('listening');
       }
       // Interrupted (barge-in): cut off in-flight audio immediately so the user
       // can actually talk over Echo, then return to listening.
       if (content?.interrupted) {
+        // Save the partial reply (what Echo said before being cut off).
+        commitAssistantTurn();
         stopPlayback();
         transitionTo('listening');
       }
     },
-    [enqueueAudio, stopPlayback, pushTrace, transitionTo, handleToolCall]
+    [enqueueAudio, stopPlayback, pushTrace, transitionTo, handleToolCall, commitUserTurn, commitAssistantTurn]
   );
+
+  // ---- Send a typed message (interrupts any in-flight reply) ---------------
+  const sendText = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || closedRef.current || !sessionRef.current) return;
+      // Sending interrupts: cut in-flight audio + save the partial reply.
+      stopPlayback();
+      commitAssistantTurn();
+      // Commit any pending spoken user text, then log the typed text directly
+      // (typed input doesn't echo back via inputTranscription).
+      commitUserTurn();
+      const turn: LogTurn = { id: crypto.randomUUID(), role: 'user', text: trimmed };
+      logRef.current = [...logRef.current, turn];
+      setLog(logRef.current);
+      transitionTo('thinking');
+      try {
+        sessionRef.current.sendClientContent({ turns: trimmed, turnComplete: true });
+      } catch {
+        /* socket closing — ignore */
+      }
+    },
+    [stopPlayback, commitAssistantTurn, commitUserTurn, transitionTo]
+  );
+
+  // ---- Clear the conversation log (New conversation) ----------------------
+  const clearLog = useCallback(() => {
+    logRef.current = [];
+    pendingUserRef.current = '';
+    pendingAssistantRef.current = '';
+    setLog([]);
+    setInterim('');
+    setPartialReply('');
+  }, []);
 
   // ---- Mic capture: stream PCM16@16k to the session -----------------------
   const startMicCapture = useCallback(async () => {
@@ -379,9 +471,14 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
   const connect = useCallback(async () => {
     if (sessionRef.current || statusRef.current === 'connecting') return;
     setError(null);
-    setTranscript('');
+    // Fresh telemetry + transcription buffers per session; keep the log so a
+    // reconnect continues the same conversation (New conversation clears it).
     traceRef.current = [];
     setTrace([]);
+    pendingUserRef.current = '';
+    pendingAssistantRef.current = '';
+    setInterim('');
+    setPartialReply('');
     turnTotalRecordedRef.current = false;
     speechEndAtRef.current = 0;
     closedRef.current = false;
@@ -468,9 +565,13 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     connected: status !== 'idle' && status !== 'error',
     error,
     trace,
-    transcript,
+    log,
+    partialReply,
+    interim,
     tokens,
     connect,
     disconnect,
+    sendText,
+    clearLog,
   };
 }

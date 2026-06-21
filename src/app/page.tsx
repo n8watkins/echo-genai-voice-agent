@@ -100,13 +100,25 @@ export default function StagePage() {
   const submitDraft = () => {
     const text = draft.trim();
     if (!text) return;
-    agent.submitText(text);
+    if (liveMode) live.sendText(text);
+    else agent.submitText(text);
     setDraft('');
   };
 
+  // Live starter prompt: connect, then send it as the opening message.
+  const startLiveWith = async (text: string) => {
+    await live.connect();
+    live.sendText(text);
+  };
+
   const newConversation = () => {
-    agent.stopAll();
-    agent.clearLog();
+    if (liveMode) {
+      live.disconnect();
+      live.clearLog();
+    } else {
+      agent.stopAll();
+      agent.clearLog();
+    }
   };
 
   return (
@@ -170,10 +182,10 @@ export default function StagePage() {
         <ChatRail
           open={railOpen}
           onClose={() => setRailOpen(false)}
-          log={agent.log}
-          partialReply={agent.partialReply}
+          log={liveMode ? live.log : agent.log}
+          partialReply={liveMode ? live.partialReply : agent.partialReply}
           onNew={newConversation}
-          onClear={agent.clearLog}
+          onClear={liveMode ? live.clearLog : agent.clearLog}
         />
 
         <section className="flex-1 flex flex-col min-w-0">
@@ -194,11 +206,7 @@ export default function StagePage() {
                           ? 'Speaking… — talk over Echo to cut in'
                           : 'Listening — just talk (talk over Echo to interrupt)'}
                     </p>
-                    {live.transcript && (
-                      <p className="max-w-md text-center text-sm text-cyan-200/70">
-                        {live.transcript}
-                      </p>
-                    )}
+                    <LiveCaptions interim={live.interim} reply={live.partialReply} />
                   </>
                 ) : (
                   <>
@@ -213,6 +221,12 @@ export default function StagePage() {
                       &mdash; it listens continuously and you can <strong>talk over it to
                       interrupt</strong>, like a phone call. Headphones recommended.
                     </p>
+                    {live.log.length === 0 && (
+                      <StarterPrompts
+                        prompts={persona.starterPrompts}
+                        onPick={(t) => void startLiveWith(t)}
+                      />
+                    )}
                   </>
                 )}
 
@@ -251,6 +265,25 @@ export default function StagePage() {
           {/* ---- Bottom dock --------------------------------------------- */}
           {liveMode ? (
             <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              {live.connected && (
+                <div className="mx-auto mb-2 flex max-w-2xl items-center gap-2 sm:gap-3">
+                  <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && submitDraft()}
+                    placeholder="…or type — sending interrupts and Echo replies by voice"
+                    className="flex-1 rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-cyan-50 placeholder-cyan-200/30 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+                  />
+                  <button
+                    onClick={submitDraft}
+                    disabled={!draft.trim()}
+                    className="p-3 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-500 text-white disabled:opacity-40 hover:from-cyan-400 hover:to-teal-400 transition"
+                    aria-label="Send message"
+                  >
+                    <PaperAirplaneIcon className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
               <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
                 <span className="text-xs text-cyan-200/60">
                   {live.connected

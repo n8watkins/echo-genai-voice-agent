@@ -65,6 +65,10 @@ export async function POST(req: NextRequest) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction,
+            // Transcribe both sides so the client can build a readable two-sided
+            // turn log (what the user said + what Echo said) for the rail.
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
             // Function-calling tools (weather / time / web_search via Tavily) —
             // the SAME declarations Classic uses, locked into the token config
             // here. The browser handles the model's toolCall by POSTing to

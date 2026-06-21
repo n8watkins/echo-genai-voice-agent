@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   InformationCircleIcon,
   PaperAirplaneIcon,
@@ -17,6 +17,9 @@ import { useUsageInfo } from '@/hooks/useUsageInfo';
 import { usePersona } from '@/hooks/usePersona';
 import { useWakeWord } from '@/hooks/useWakeWord';
 import { useDevView } from '@/hooks/useDevView';
+import { useConversations } from '@/hooks/useConversations';
+import { signIn } from 'next-auth/react';
+import type { LogTurn } from '@/hooks/useVoiceAgent';
 import DevPanel from '@/components/DevPanel';
 import VoiceOrb from '@/components/VoiceOrb';
 import StatusPill from '@/components/StatusPill';
@@ -45,6 +48,13 @@ export default function StagePage() {
   const usage = useUsageInfo();
   const wake = useWakeWord({ onWake: () => agent.startListening() });
   const devView = useDevView();
+  const {
+    signedIn: persistOn,
+    list: savedConvos,
+    save: saveConv,
+    load: loadConv,
+    remove: removeConv,
+  } = useConversations();
 
   const liveMode = engine === 'live';
 
@@ -63,6 +73,11 @@ export default function StagePage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [draft, setDraft] = useState('');
+  const [viewing, setViewing] = useState<{ id: string; turns: LogTurn[] } | null>(null);
+  const convIdRef = useRef<string | null>(null);
+
+  const activeLog = liveMode ? live.log : agent.log;
+  const activePartial = liveMode ? live.partialReply : agent.partialReply;
 
   // Auto-pick a voice matching the active persona's hint (unless the user has
   // manually overridden the voice — applyVoiceHint no-ops in that case).
@@ -70,6 +85,18 @@ export default function StagePage() {
   useEffect(() => {
     applyVoiceHint(persona.voiceHint);
   }, [persona.voiceHint, applyVoiceHint, agent.speech.voices.length]);
+
+  // Auto-save the active conversation (debounced) when signed in. The id is
+  // minted on the first turn and reset on New conversation.
+  useEffect(() => {
+    if (!persistOn || viewing || activeLog.length === 0) return;
+    if (!convIdRef.current) convIdRef.current = crypto.randomUUID();
+    const id = convIdRef.current;
+    const handle = setTimeout(() => {
+      void saveConv({ id, engine, persona: personaId, turns: activeLog });
+    }, 1200);
+    return () => clearTimeout(handle);
+  }, [activeLog, persistOn, viewing, engine, personaId, saveConv]);
 
   // Switching engines must quiet the path we're leaving so the two backends
   // never run at once. Classic stays the default and is untouched in behavior.
@@ -113,6 +140,8 @@ export default function StagePage() {
   };
 
   const newConversation = () => {
+    convIdRef.current = null;
+    setViewing(null);
     if (liveMode) {
       live.disconnect();
       live.clearLog();
@@ -120,6 +149,16 @@ export default function StagePage() {
       agent.stopAll();
       agent.clearLog();
     }
+  };
+
+  const openSaved = async (id: string) => {
+    const turns = await loadConv(id);
+    if (turns) setViewing({ id, turns });
+  };
+
+  const deleteSaved = async (id: string) => {
+    await removeConv(id);
+    setViewing((v) => (v?.id === id ? null : v));
   };
 
   return (
@@ -184,10 +223,16 @@ export default function StagePage() {
         <ChatRail
           open={railOpen}
           onClose={() => setRailOpen(false)}
-          log={liveMode ? live.log : agent.log}
-          partialReply={liveMode ? live.partialReply : agent.partialReply}
+          log={viewing ? viewing.turns : activeLog}
+          partialReply={viewing ? '' : activePartial}
           onNew={newConversation}
           onClear={liveMode ? live.clearLog : agent.clearLog}
+          saved={savedConvos}
+          onOpenSaved={openSaved}
+          onDeleteSaved={deleteSaved}
+          viewingId={viewing?.id ?? null}
+          signedIn={persistOn}
+          onSignIn={() => signIn('github')}
         />
 
         <section className="flex-1 flex flex-col min-w-0">

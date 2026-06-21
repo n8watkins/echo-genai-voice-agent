@@ -4,14 +4,13 @@ import { useEffect, useState } from 'react';
 import { PlusIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
 import type { LogTurn } from '@/hooks/useVoiceAgent';
+import type { ConvSummary } from '@/hooks/useConversations';
 import ConversationLog from './ConversationLog';
 
 /**
- * Collapsible left rail (chat-app style). Holds the current conversation
- * transcript plus "New conversation" (clears the log) and Clear actions.
+ * Collapsible left rail (chat-app style). Holds the saved-conversations list
+ * (when signed in) plus the active/viewed transcript and New/Clear actions.
  * On desktop it's an inline column; on mobile it becomes an overlay drawer.
- *
- * Scope per spec: transcript + new/clear only — no multi-conversation store.
  */
 export default function ChatRail({
   open,
@@ -20,6 +19,12 @@ export default function ChatRail({
   partialReply,
   onNew,
   onClear,
+  saved,
+  onOpenSaved,
+  onDeleteSaved,
+  viewingId,
+  signedIn,
+  onSignIn,
 }: {
   open: boolean;
   onClose: () => void;
@@ -27,6 +32,12 @@ export default function ChatRail({
   partialReply: string;
   onNew: () => void;
   onClear: () => void;
+  saved: ConvSummary[];
+  onOpenSaved: (id: string) => void;
+  onDeleteSaved: (id: string) => void;
+  viewingId: string | null;
+  signedIn: boolean;
+  onSignIn: () => void;
 }) {
   const empty = log.length === 0 && !partialReply;
 
@@ -55,7 +66,6 @@ export default function ChatRail({
     <div className="flex h-full flex-col gap-3 p-3">
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-cyan-200/60">Chats</h2>
-        {/* Close button only matters on the mobile overlay */}
         <button
           onClick={onClose}
           aria-label="Close conversation panel"
@@ -72,7 +82,57 @@ export default function ChatRail({
         <PlusIcon className="w-4 h-4" /> New conversation
       </button>
 
+      {/* Saved conversations (signed in) or a sign-in nudge */}
+      {signedIn ? (
+        saved.length > 0 && (
+          <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto rounded-xl border border-white/5 bg-white/[0.02] p-1">
+            {saved.map((c) => (
+              <div
+                key={c.id}
+                className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs transition ${
+                  viewingId === c.id
+                    ? 'bg-cyan-500/15 text-cyan-100'
+                    : 'text-cyan-200/70 hover:bg-white/5'
+                }`}
+              >
+                <button
+                  onClick={() => onOpenSaved(c.id)}
+                  className="flex-1 truncate text-left"
+                  title={c.title}
+                >
+                  {c.title || 'Conversation'}
+                </button>
+                <button
+                  onClick={() => onDeleteSaved(c.id)}
+                  aria-label="Delete saved conversation"
+                  className="text-cyan-200/40 opacity-0 transition hover:text-rose-300 group-hover:opacity-100"
+                >
+                  <TrashIcon className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        <button
+          onClick={onSignIn}
+          className="rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2 text-left text-xs leading-snug text-cyan-200/60 transition hover:border-cyan-400/40 hover:text-cyan-100"
+        >
+          <span className="font-medium text-cyan-100/90">Sign in with GitHub</span> to save your
+          conversations and pick them back up later.
+        </button>
+      )}
+
+      {/* Active / viewed transcript */}
       <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-white/5 bg-white/[0.02] p-2">
+        {viewingId && (
+          <div className="mb-2 flex items-center justify-between rounded-lg bg-cyan-500/10 px-2 py-1 text-[11px] text-cyan-200/80">
+            <span>Viewing a saved chat</span>
+            <button onClick={onNew} className="underline hover:text-cyan-100">
+              back to current
+            </button>
+          </div>
+        )}
         {empty ? (
           <p className="px-1 py-2 text-xs text-cyan-200/40 leading-snug">
             Your conversation transcript will appear here.
@@ -82,7 +142,7 @@ export default function ChatRail({
         )}
       </div>
 
-      {!empty && (
+      {!empty && !viewingId && (
         <button
           onClick={onClear}
           className="flex items-center gap-1 self-start text-xs text-cyan-200/60 hover:text-cyan-100 transition"

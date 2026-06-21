@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 const title = 'Echo — Realtime Voice Agent';
@@ -21,6 +21,15 @@ export const metadata: Metadata = {
     title,
     description,
   },
+};
+
+// Mobile viewport: lock to device width, allow pinch-zoom (accessibility),
+// and extend under iOS browser chrome / safe areas so the dvh-based shell can
+// use the full screen and honour env(safe-area-inset-*).
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({

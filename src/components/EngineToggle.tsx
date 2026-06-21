@@ -18,7 +18,7 @@ export default function EngineToggle({
   disabled?: boolean;
 }) {
   const base =
-    'px-3 py-1 text-xs font-medium rounded-full transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40';
+    'px-2.5 sm:px-3 py-1 text-xs font-medium rounded-full transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40';
   const active =
     'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-sm shadow-cyan-500/30';
   const inactive = 'text-cyan-200/70 hover:text-cyan-100';

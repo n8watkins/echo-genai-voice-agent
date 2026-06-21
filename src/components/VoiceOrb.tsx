@@ -42,13 +42,13 @@ export default function VoiceOrb({
       {/* Ripple rings while listening */}
       {listening && (
         <>
-          <span className="absolute w-44 h-44 rounded-full border-2 border-rose-400/40 orb-ring" />
+          <span className="absolute w-32 h-32 sm:w-44 sm:h-44 rounded-full border-2 border-rose-400/40 orb-ring" />
           <span
-            className="absolute w-44 h-44 rounded-full border-2 border-rose-400/30 orb-ring"
+            className="absolute w-32 h-32 sm:w-44 sm:h-44 rounded-full border-2 border-rose-400/30 orb-ring"
             style={{ animationDelay: '0.6s' }}
           />
           <span
-            className="absolute w-44 h-44 rounded-full border-2 border-rose-400/20 orb-ring"
+            className="absolute w-32 h-32 sm:w-44 sm:h-44 rounded-full border-2 border-rose-400/20 orb-ring"
             style={{ animationDelay: '1.2s' }}
           />
         </>
@@ -57,7 +57,7 @@ export default function VoiceOrb({
       {/* The orb */}
       <span
         className={[
-          'relative w-44 h-44 rounded-full bg-gradient-to-br',
+          'relative w-32 h-32 sm:w-44 sm:h-44 rounded-full bg-gradient-to-br',
           gradient,
           glow,
           thinking ? 'orb-shimmer' : 'orb-idle',

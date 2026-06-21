@@ -15,7 +15,7 @@ export default function ModeToggle({
   disabled?: boolean;
 }) {
   const base =
-    'px-3 py-1 text-xs font-medium rounded-full transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40';
+    'px-2.5 sm:px-3 py-1 text-xs font-medium rounded-full transition focus:outline-none focus:ring-2 focus:ring-cyan-400/40';
   return (
     <div
       role="radiogroup"

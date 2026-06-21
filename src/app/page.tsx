@@ -112,7 +112,7 @@ export default function StagePage() {
   return (
     <main className="echo-stage h-dvh flex flex-col text-cyan-50 relative overflow-hidden">
       {/* ---- Top bar -------------------------------------------------------- */}
-      <header className="flex items-center justify-between gap-2 px-3 sm:px-5 py-3 z-10 border-b border-white/5">
+      <header className="flex items-center justify-between gap-2 px-3 sm:px-5 py-2.5 sm:py-3 z-10 border-b border-white/5">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => setRailOpen((o) => !o)}
@@ -178,7 +178,7 @@ export default function StagePage() {
 
         <section className="flex-1 flex flex-col min-w-0">
           {/* Center stage */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4 py-6 overflow-y-auto">
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 sm:gap-6 px-4 py-4 sm:py-6 overflow-y-auto">
             {liveMode ? (
               <>
                 <VoiceOrb state={liveOrbState} onClick={orbClick} />
@@ -250,7 +250,7 @@ export default function StagePage() {
 
           {/* ---- Bottom dock --------------------------------------------- */}
           {liveMode ? (
-            <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 py-3">
+            <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
                 <span className="text-xs text-cyan-200/60">
                   {live.connected
@@ -275,9 +275,9 @@ export default function StagePage() {
               </div>
             </div>
           ) : (
-          <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 py-3">
+          <div className="flex-shrink-0 border-t border-white/10 bg-white/[0.03] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <HeadsetTipBanner active={headsetTipActive} />
-            <div className="mx-auto flex max-w-2xl items-center gap-3 pt-2">
+            <div className="mx-auto flex max-w-2xl items-center gap-2 sm:gap-3 pt-2">
               <MicButton
                 size="sm"
                 state={agent.state}

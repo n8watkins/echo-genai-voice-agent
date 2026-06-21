@@ -16,6 +16,7 @@
   "dependencies": {
     "@google/genai": "^1.0.0",
     "@heroicons/react": "^2.2.0",
+    "@libsql/client": "^0.17.4",
     "@picovoice/porcupine-web": "^4.0.0",
     "@picovoice/web-voice-processor": "^4.0.10",
     "lucide-react": "^0.460.0",

@@ -46,5 +46,19 @@
 - [ ] Browser tab shows the **favicon** (Echo cyan "E").
 - [ ] Pasting the (eventual) deploy URL into Slack/iMessage shows the **OG preview card**. (Verify post-deploy; locally check `/opengraph-image` renders.)
 
+## GitHub sign-in + saving conversations (session #3 — needs Render env vars live)
+- [ ] **Sign in** (top-right, GitHub) → redirects to GitHub → back signed in (avatar shows). _Needs `AUTH_GITHUB_*` + `AUTH_SECRET` on Render + the **production** OAuth callback `…/api/auth/callback/github`._
+- [ ] Have a conversation (Classic or Live) → it **auto-saves** (a second or two after a turn) and appears in the **left rail** "saved" list.
+- [ ] **Reload the page** → the saved chat is still listed → click it → it loads read-only ("viewing a saved chat" banner) → "back to current" returns.
+- [ ] **Delete** (trash icon) removes it from the list.
+- [ ] **Sign out** → saved list disappears; app still fully works (in-memory). Signed-out users see a "Sign in to save" nudge in the rail.
+- [ ] _If signed-in chats DON'T save: `session.user.id` isn't populating — check the `session` callback in `src/auth.ts`._
+
+## Live mode — tools + transcript (session #3)
+- [ ] In Live, ask **"what's the weather in Paris?"** / **"search the web for today's news"** → a tool call fires and Echo **speaks** a grounded answer (web_search needs `TAVILY_API_KEY` live).
+- [ ] The conversation **transcript** (left rail) shows **both** your words and Echo's — confirm **your own speech** is transcribed (input transcription; real mic only).
+- [ ] **Type** a message in the Live dock while Echo is talking → it **interrupts** and Echo replies by voice.
+- [ ] A **starter prompt** (before connecting) connects and sends as the opening message.
+
 ## Findings (fill in during QA)
 - …

@@ -49,7 +49,9 @@ export async function POST(req: NextRequest) {
       ? body.systemPrompt.slice(0, 4000)
       : LIVE_SYSTEM_INSTRUCTION;
 
-  const ai = getClient(resolved.apiKey);
+  // Ephemeral tokens (ai.authTokens) live on the v1alpha API surface only;
+  // a default (v1beta) client returns 404 Not Found from authTokens.create.
+  const ai = getClient(resolved.apiKey, 'v1alpha');
 
   try {
     // Single-use token, default ~30-min TTL, locked to the Live model + AUDIO.

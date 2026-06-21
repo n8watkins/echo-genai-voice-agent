@@ -97,6 +97,12 @@ export function resolveApiKey(userKey?: string | null): ResolvedKey | null {
   return null;
 }
 
-export function getClient(apiKey: string): GoogleGenAI {
-  return new GoogleGenAI({ apiKey });
+/**
+ * Build a GoogleGenAI client. Pass `apiVersion: 'v1alpha'` for the Live API /
+ * ephemeral-token surface (`ai.live`, `ai.authTokens`), which is NOT exposed on
+ * the default `v1beta` endpoint — calling `authTokens.create` on v1beta returns
+ * a bare `404 Not Found`. Text/tool calls stay on the default (v1beta).
+ */
+export function getClient(apiKey: string, apiVersion?: string): GoogleGenAI {
+  return new GoogleGenAI(apiVersion ? { apiKey, apiVersion } : { apiKey });
 }

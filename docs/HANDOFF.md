@@ -53,6 +53,7 @@ App-shell UI — **top bar** (persona switcher, **Conversation | Push** mode tog
 - **Gemini 3 thoughtSignature** must be preserved on tool round-trips (collect `modelParts` verbatim) — see `src/app/api/chat/route.ts`.
 - 250 cap is **per-process/in-memory** (resets on cold start); Upstash is the durable upgrade.
 - Tunables live at the top of `useVoiceAgent.ts`: `BARGE_IN_COOLDOWN_MS`, `MIN_BARGE_IN_CHARS`.
+- **Live mode needs the `v1alpha` API surface.** `ai.authTokens.create` + `ai.live.*` exist only on v1alpha; a default (v1beta) client returns a bare `{"error":{"message":"","code":404,"status":"Not Found"}}` from the token mint. `getClient(apiKey, 'v1alpha')` in `/api/live-token`; the browser `ai.live.connect` already passed `apiVersion: 'v1alpha'`. (Fixed session #3 — was the reason Live-mode "Start conversation" 404'd.)
 
 ## Next steps (ordered)
 > **Audit 2026-06-20:** the original step 1 ("merge `ui-app-shell-retrofit` + add a remote") is **DONE** — app is shipped public, `ui-app-shell-retrofit` is merged. Reordered below.

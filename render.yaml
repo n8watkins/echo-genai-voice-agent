@@ -27,10 +27,8 @@ services:
         sync: false          # required — server demo-key fallback; set in dashboard
       - key: ECHO_MODEL
         sync: false          # optional — default text/tool model id
-      - key: GOOGLE_SEARCH_API_KEY
-        sync: false          # optional — enables the web_search tool
-      - key: GOOGLE_SEARCH_ENGINE_ID
-        sync: false          # optional — pairs with GOOGLE_SEARCH_API_KEY
+      - key: TAVILY_API_KEY
+        sync: false          # optional — enables the web_search tool (free key at app.tavily.com)
       - key: NEXT_PUBLIC_PICOVOICE_ACCESS_KEY
         sync: false          # optional — enables the on-device wake word
       - key: NEXT_PUBLIC_APP_URL

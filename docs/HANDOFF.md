@@ -4,10 +4,11 @@
 
 ## 🚀 Deployed — 2026-06-20 (session #3)
 **Echo is LIVE on Render (free tier): <https://echo-kzw1.onrender.com>** — `/api/healthz` returns `{status:"ok", hasDemoKey:true, model:"gemini-3.1-flash-lite"}` (verified live).
-- **How:** in-repo **`render.yaml` Blueprint** (repo root). Free web service · build `npm install && npm run build` · start `npx next start -p $PORT` (package.json `start` hardcodes 3200, so the `$PORT` override is **mandatory** on Render) · health check `/api/healthz` · Node 22. Dashboard env: `GEMINI_API_KEY` (+ `ECHO_MODEL=gemini-3.1-flash-lite`); `GOOGLE_SEARCH_*`, Picovoice, `NEXT_PUBLIC_APP_URL` left **blank** (all optional — `web_search` degrades to model knowledge, wake-word stays disabled, app unaffected).
+- **How:** in-repo **`render.yaml` Blueprint** (repo root). Free web service · build `npm install && npm run build` · start `npx next start -p $PORT` (package.json `start` hardcodes 3200, so the `$PORT` override is **mandatory** on Render) · health check `/api/healthz` · Node 22. Dashboard env: `GEMINI_API_KEY` (+ `ECHO_MODEL=gemini-3.1-flash-lite`); `TAVILY_API_KEY`, Picovoice, `NEXT_PUBLIC_APP_URL` left **blank** at first deploy (all optional — `web_search` degrades to model knowledge, wake-word stays disabled, app unaffected). *(`web_search` later switched to Tavily — see the cont. note below.)*
 - **Keep-warm reality:** free services spin down after ~15 min idle (~1 min cold start); the **workspace** shares **750 instance-hours/month**. One UptimeRobot HTTP monitor on `…/api/healthz` @ 5 min keeps ONE service warm; 2–3 always-on free services exhaust the 750h in ~10 days — so "all portfolio apps always-on for free" isn't viable (keep one warm + cold-start the rest, or upgrade/Vercel). User is setting up the UptimeRobot monitor.
 - **Known cosmetic gap:** `metadataBase` in `src/app/layout.tsx` is **hardcoded** to `https://portfolio.n8builds.dev/echo`, so social-share preview *images* won't resolve on the `onrender.com` URL until that domain is live or the value is repointed. `NEXT_PUBLIC_APP_URL` is documented in `.env.example`/README but **unused in code** — the clean fix is to wire `metadataBase` to it. The page itself works fine.
 - **Unchanged:** the manual Chrome+mic QA pass is still owed — deploying didn't touch it.
+- **Web search → Tavily (session #3, cont.):** swapped the dormant Google-PSE `web_search` impl for **Tavily** (`TAVILY_API_KEY`, an LLM-oriented search API; free ~1k searches/mo at [app.tavily.com](https://app.tavily.com)). Same `web_search` tool *declaration* — only the `tools.ts` dispatcher + env/docs changed; still degrades gracefully with no key. Key set in `.env.local` for local dev; **set `TAVILY_API_KEY` in the Render dashboard** (Environment tab) to enable live search on the deploy. The old `GOOGLE_SEARCH_*` vars are retired everywhere except the historical `VOICE_AGENT_PLAN.md` env block (left as the original plan-time record).
 
 ## ✅ Audit reconciliation — 2026-06-20
 Re-verified this handoff against the actual repo (git log/branch + file/test checks). Findings folded in below. Headline corrections:
@@ -33,7 +34,7 @@ Talk to an AI and it talks back — streamed, interruptible, with tools. The the
 - **Stack:** Next.js 16 / React 19 / TS / Tailwind v4; `@google/genai` (`gemini-3.1-flash-lite`, configurable `ECHO_MODEL`).
 - **Voice is browser-side:** Web Speech API `SpeechRecognition` (STT) + `speechSynthesis` (TTS). Server only streams the model's text over SSE (`src/app/api/chat/route.ts`).
 - **Pipeline:** STT → SSE tokens → `SentenceChunker` (speak-as-you-stream) → TTS queue, driven by a pure turn-taking state machine (`src/lib/conversation/turnMachine.ts`).
-- **Tools:** `get_current_time`, `get_weather` (Open-Meteo, keyless), `web_search` (Google PSE, degrades gracefully).
+- **Tools:** `get_current_time`, `get_weather` (Open-Meteo, keyless), `web_search` (**Tavily** LLM-search API via `TAVILY_API_KEY`, degrades gracefully).
 - **Port 3200.** `npm run dev` / `npm run build` / `npm test` / `npm run lint`.
 
 ## Features

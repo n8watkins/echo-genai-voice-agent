@@ -153,7 +153,7 @@ Echo's tools are plain function declarations dispatched in the chat route
 |---|---|---|
 | `get_current_time` | Current time for a given time zone | No |
 | `get_weather` | Current weather via **Open-Meteo** | No (keyless API) |
-| `web_search` | Quick web lookup via Google Programmable Search | Optional — degrades to model knowledge without a key |
+| `web_search` | Quick web lookup via Tavily (LLM-oriented search API) | Optional — degrades to model knowledge without a key |
 
 ## Tech stack
 
@@ -187,7 +187,7 @@ typed input works everywhere.
 |---|---|
 | `GEMINI_API_KEY` | Server demo-key fallback (optional; BYOK preferred). |
 | `ECHO_MODEL` | Default text/tool model id (the in-app model picker can override per session; BYOK models are server-validated). Defaults to `gemini-3.1-flash-lite`. |
-| `GOOGLE_SEARCH_API_KEY` / `GOOGLE_SEARCH_ENGINE_ID` | Optional — enables the `web_search` tool. Without them, Echo answers from its own knowledge. |
+| `TAVILY_API_KEY` | Optional — enables the `web_search` tool via Tavily (free key at [app.tavily.com](https://app.tavily.com)). Without it, Echo answers from its own knowledge. |
 | `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional — enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
 | `NEXT_PUBLIC_APP_URL`, `PORT` | App URL / port (3200). |
 

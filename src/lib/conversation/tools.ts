@@ -6,8 +6,8 @@ import { Type, type FunctionDeclaration } from '@google/genai';
  * keyless-friendly so the demo works out of the box:
  *   - get_current_time uses Intl + the IANA tz database (no network).
  *   - get_weather uses the free, keyless Open-Meteo API.
- *   - web_search uses Google Programmable Search IF keys are configured,
- *     otherwise it degrades gracefully with an honest "no search configured".
+ *   - web_search uses Tavily (an LLM-oriented search API) IF TAVILY_API_KEY is
+ *     set, otherwise it degrades gracefully with an honest "no search configured".
  */
 
 export const functionDeclarations: FunctionDeclaration[] = [
@@ -166,34 +166,47 @@ async function getWeather(location: string): Promise<Record<string, unknown>> {
 }
 
 // ---------------------------------------------------------------------------
-// web_search — Google Programmable Search if configured, else graceful note
+// web_search — Tavily (LLM-oriented search API) if configured, else graceful note
 // ---------------------------------------------------------------------------
 
 async function webSearch(query: string): Promise<Record<string, unknown>> {
   if (!query.trim()) return { error: 'No search query provided.' };
 
-  const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
-  const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
+  const apiKey = process.env.TAVILY_API_KEY;
 
-  if (!apiKey || !cx) {
+  if (!apiKey) {
     return {
       note: 'Web search is not configured on this demo. Answer from your own knowledge and mention you could not search the live web.',
     };
   }
 
-  const res = await fetch(
-    `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(
-      query
-    )}&num=3`
-  );
+  // Tavily is built for agents: it returns clean extracted content plus an
+  // optional synthesized `answer` we can hand straight to the model.
+  const res = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      query,
+      max_results: 3,
+      search_depth: 'basic',
+      include_answer: true,
+    }),
+  });
   if (!res.ok) return { error: 'Web search request failed.' };
   const data = (await res.json()) as {
-    items?: Array<{ title: string; snippet: string; link: string }>;
+    answer?: string;
+    results?: Array<{ title: string; url: string; content: string }>;
   };
-  const results = (data.items ?? []).map((i) => ({
-    title: i.title,
-    snippet: i.snippet,
-    link: i.link,
-  }));
-  return { query, results };
+  return {
+    query,
+    answer: data.answer ?? null,
+    results: (data.results ?? []).map((r) => ({
+      title: r.title,
+      snippet: r.content,
+      link: r.url,
+    })),
+  };
 }

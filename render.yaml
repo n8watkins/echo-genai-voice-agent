@@ -33,3 +33,13 @@ services:
         sync: false          # optional — enables the on-device wake word
       - key: NEXT_PUBLIC_APP_URL
         sync: false          # set to https://<your-app>.onrender.com after first deploy
+      - key: TURSO_DATABASE_URL
+        sync: false          # optional — saving conversations (Turso/libSQL)
+      - key: TURSO_AUTH_TOKEN
+        sync: false          # optional — pairs with TURSO_DATABASE_URL
+      - key: AUTH_GITHUB_ID
+        sync: false          # optional — GitHub sign-in (gates saving)
+      - key: AUTH_GITHUB_SECRET
+        sync: false          # optional — pairs with AUTH_GITHUB_ID
+      - key: AUTH_SECRET
+        sync: false          # required when AUTH_GITHUB_* are set — any random string

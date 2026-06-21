@@ -191,6 +191,8 @@ typed input works everywhere.
 | `ECHO_MODEL` | Default text/tool model id (the in-app model picker can override per session; BYOK models are server-validated). Defaults to `gemini-3.1-flash-lite`. |
 | `TAVILY_API_KEY` | Optional — enables the `web_search` tool via Tavily (free key at [app.tavily.com](https://app.tavily.com)). Without it, Echo answers from its own knowledge. |
 | `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional — enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Optional — saving conversations ([Turso](https://turso.tech)/libSQL). Absent → conversations are in-memory only. |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` / `AUTH_SECRET` | Optional — GitHub sign-in (Auth.js) that gates saving. Absent → sign-in is hidden. |
 | `NEXT_PUBLIC_APP_URL`, `PORT` | App URL / port (3200). |
 
 ### Wake word (optional, on-device)
@@ -302,8 +304,9 @@ Web Service by hand:
   portfolio demo. The free tier shares **750 instance-hours/month per workspace**, so
   keeping several services warm 24/7 exhausts it; keep one warm (e.g. an UptimeRobot
   HTTP monitor hitting `/api/healthz` every 5 min) and let the rest cold-start, or
-  upgrade the always-on ones to a paid instance. Transcripts are intentionally
-  ephemeral.
+  upgrade the always-on ones to a paid instance. Transcripts are in-memory by
+  default; configure Turso + GitHub sign-in (see [Environment](#environment)) to
+  let signed-in users save and revisit their chats — text only, never audio.
 - Because STT/TTS are browser-side, there's no audio infrastructure to provision;
   the server only proxies the model stream.
 

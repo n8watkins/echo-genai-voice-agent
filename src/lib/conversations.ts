@@ -1,9 +1,9 @@
 import { getDb } from './db';
 
 /**
- * Conversation persistence (Turso). All access is scoped by `anonId` — the
+ * Conversation persistence (Turso). All access is scoped by `ownerId` — the
  * per-browser anonymous id that owns a conversation. Reads/deletes require the
- * matching anonId; saves can't hijack another browser's conversation id.
+ * matching ownerId; saves can't hijack another browser's conversation id.
  *
  * Every function no-ops (returns empty / false) when persistence is off, so
  * callers never need to branch on configuration.
@@ -32,13 +32,13 @@ const MAX_TURNS = 200;
 const MAX_TURN_CHARS = 4000;
 const MAX_TITLE_CHARS = 80;
 
-export async function listConversations(anonId: string): Promise<ConversationSummary[]> {
+export async function listConversations(ownerId: string): Promise<ConversationSummary[]> {
   const db = await getDb();
-  if (!db || !anonId) return [];
+  if (!db || !ownerId) return [];
   const rs = await db.execute({
     sql: `SELECT id, engine, persona, title, updated_at
           FROM conversations WHERE anon_id = ? ORDER BY updated_at DESC LIMIT ?`,
-    args: [anonId, MAX_LIST],
+    args: [ownerId, MAX_LIST],
   });
   return rs.rows.map((r) => ({
     id: String(r.id),
@@ -51,14 +51,14 @@ export async function listConversations(anonId: string): Promise<ConversationSum
 
 export async function getConversation(
   id: string,
-  anonId: string
+  ownerId: string
 ): Promise<StoredConversation | null> {
   const db = await getDb();
-  if (!db || !id || !anonId) return null;
+  if (!db || !id || !ownerId) return null;
   const head = await db.execute({
     sql: `SELECT id, engine, persona, title, created_at, updated_at
           FROM conversations WHERE id = ? AND anon_id = ?`,
-    args: [id, anonId],
+    args: [id, ownerId],
   });
   const c = head.rows[0];
   if (!c) return null;
@@ -82,7 +82,7 @@ export async function getConversation(
 
 export interface SaveConversationInput {
   id: string;
-  anonId: string;
+  ownerId: string;
   engine: string;
   persona?: string | null;
   turns: StoredTurn[];
@@ -91,7 +91,7 @@ export interface SaveConversationInput {
 
 export async function saveConversation(input: SaveConversationInput): Promise<boolean> {
   const db = await getDb();
-  if (!db || !input.id || !input.anonId) return false;
+  if (!db || !input.id || !input.ownerId) return false;
 
   const turns = input.turns
     .filter((t) => t && typeof t.text === 'string' && t.text.trim())
@@ -114,7 +114,7 @@ export async function saveConversation(input: SaveConversationInput): Promise<bo
                 title = excluded.title, updated_at = excluded.updated_at,
                 engine = excluded.engine, persona = excluded.persona
               WHERE conversations.anon_id = excluded.anon_id`,
-        args: [input.id, input.anonId, input.engine, input.persona ?? null, title, input.now, input.now],
+        args: [input.id, input.ownerId, input.engine, input.persona ?? null, title, input.now, input.now],
       },
       { sql: `DELETE FROM messages WHERE conversation_id = ?`, args: [input.id] },
       ...turns.map((t, i) => ({
@@ -127,18 +127,18 @@ export async function saveConversation(input: SaveConversationInput): Promise<bo
   return true;
 }
 
-export async function deleteConversation(id: string, anonId: string): Promise<boolean> {
+export async function deleteConversation(id: string, ownerId: string): Promise<boolean> {
   const db = await getDb();
-  if (!db || !id || !anonId) return false;
+  if (!db || !id || !ownerId) return false;
   // Delete messages only when the conversation is owned by this anon.
   await db.batch(
     [
       {
         sql: `DELETE FROM messages WHERE conversation_id IN
                 (SELECT id FROM conversations WHERE id = ? AND anon_id = ?)`,
-        args: [id, anonId],
+        args: [id, ownerId],
       },
-      { sql: `DELETE FROM conversations WHERE id = ? AND anon_id = ?`, args: [id, anonId] },
+      { sql: `DELETE FROM conversations WHERE id = ? AND anon_id = ?`, args: [id, ownerId] },
     ],
     'write'
   );

@@ -56,6 +56,6 @@ export async function POST(req: NextRequest) {
 
   if (!id || turns.length === 0) return json({ ok: false, error: 'Missing id or turns' }, 400);
 
-  const ok = await saveConversation({ id, anonId: ownerId, engine, persona, turns, now: Date.now() });
+  const ok = await saveConversation({ id, ownerId, engine, persona, turns, now: Date.now() });
   return json({ ok });
 }

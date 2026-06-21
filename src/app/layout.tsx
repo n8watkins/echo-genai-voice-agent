@@ -6,14 +6,18 @@ const title = 'Echo — Realtime Voice Agent';
 const description =
   'Talk to an AI and it talks back — in real time, interruptible, with tools. A portfolio project by Nathan Watkins.';
 
+// Canonical URL for OG / share cards. Override with NEXT_PUBLIC_APP_URL (e.g. a
+// future custom domain); defaults to the live Render deploy so previews resolve.
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://echo-kzw1.onrender.com';
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://portfolio.n8builds.dev/echo'),
+  metadataBase: new URL(appUrl),
   title,
   description,
   openGraph: {
     title,
     description,
-    url: 'https://portfolio.n8builds.dev/echo',
+    url: appUrl,
     siteName: 'Echo',
     type: 'website',
   },

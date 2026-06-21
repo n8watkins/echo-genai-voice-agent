@@ -1,5 +1,13 @@
 # Echo — Realtime Voice Agent · One-Shot Build Plan
 
+> **⚠️ Historical build plan (session #1).** Kept as a record of original intent;
+> where it diverged from what shipped, current truth lives in `HANDOFF.md` +
+> `README.md`. Notable evolutions: **SDK** is `@google/genai` (not the
+> `@google/generative-ai` named in §3 — §12a already corrects this); **web search**
+> uses **Tavily** (`TAVILY_API_KEY`), not Google Programmable Search (§11);
+> **persistence** is moving to **Turso/libSQL**, not the `better-sqlite3` +
+> `api/conversations` route sketched in §5/§13.
+
 > **Display name:** Echo
 > **Folder:** `echo/`
 > **Dev port:** `3200` (runs alongside net-trailers:3000, gemini-chat-app:5000, scout:3100)

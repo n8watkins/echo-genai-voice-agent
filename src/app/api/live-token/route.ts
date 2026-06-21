@@ -64,6 +64,10 @@ export async function POST(req: NextRequest) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction,
+            // Native Google Search grounding: the model searches the web itself,
+            // server-side, and grounds its spoken answer — no client round-trip,
+            // no Tavily key. (Classic uses the hand-wired Tavily tool instead.)
+            tools: [{ googleSearch: {} }],
           },
         },
       },

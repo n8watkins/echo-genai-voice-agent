@@ -45,11 +45,38 @@ So why build the hand version at all? Because doing it by hand is how you unders
 
 The senior-engineering lesson is the sequence, not either choice on its own: build it by hand to learn the domain, then know when to stop hand-rolling and reach for the primitive that's now better than what you'd write. The point of building the loop yourself was never to ship the loop forever — it was to earn the judgment to evaluate the thing that replaces it.
 
+One more thing the side-by-side taught me, and it's the most counterintuitive part: **the managed version isn't a magic "it just works" button.** Later, when I tried to give the native voice its own web search, Google has a built-in "just flip on search" option — literally one line of config. It connected… then instantly hung up on me with a blank, cryptic error. Took some digging to learn that feature needs a *paid* plan; on the free tier it just dies on the spot. So I wired search up the manual way instead — and *that* path was free. Sit with that for a second: the fancy managed feature was the expensive one, and the do-it-yourself version cost nothing. The takeaway isn't "managed bad" — it's that you genuinely don't know what a primitive costs, or how it behaves, until you poke it with your own key.
+
 ## Lesson 8: you can't tune a latency budget you can't see
 
 "~800ms time-to-first-word" is a nice claim until someone asks *where* the milliseconds actually go. So I built an "under the hood" panel: a live **latency waterfall** that breaks a turn into its stages — STT, model first-token, each sentence's TTS, and the turn-total headline — alongside the token counts, tool calls, and the turn-state timeline. The 800ms budget, made literal, as bars you can read.
 
 Two things fell out of it. First, it turned a slogan into an instrument: the same panel runs for both Classic and Live, so the side-by-side latency comparison is something you *watch*, not something I assert. Second — and this is the part I'd generalize — observability isn't a debugging afterthought for a latency product; it's part of the product surface. When perceived speed *is* the feature, being able to point at where a turn spent its time is how you defend, and keep, the number.
+
+## Picking between APIs (the part no tutorial really covers)
+
+Honestly, a lot of this project wasn't writing code — it was standing at a fork between two APIs that both technically "work" and figuring out which one actually fit. If you're newer to this, that's the skill nobody hands you a guide for, so here are the real forks I hit, in plain language:
+
+- **Glue it together, or use the all-in-one?** For voice you can either bolt three separate services together — one to *hear* (speech-to-text), one to *think* (the language model), one to *speak* (text-to-speech) — or use a single "native" model that hears and speaks on its own. The glued version is cheap and you control every piece; the all-in-one feels more like a real phone call but charges you for the audio. Neither is "correct" — it's a tradeoff, so I built both just to feel the difference.
+- **Let the model search, or build search myself?** Same shape. The model has a built-in web search you flip on (managed — but, as I found out the hard way, paid), or you hand it your *own* search tool and run it yourself (more wiring, but free). And "build it myself" had its own sub-fork: a general search API versus one made specifically for feeding AI clean results. I picked the AI-flavored one (Tavily) because it hands back tidy answers instead of a pile of links I'd have to untangle.
+- **How does the browser talk to the AI without leaking my keys?** The native voice runs *in your browser*, so the browser needs credentials — but you never, ever want your real API key sitting in someone's browser tab. The fix is "ephemeral tokens": the server hands out a one-time, short-lived pass scoped to exactly what's allowed, and the browser uses that. Felt like overkill right up until I realized it's just… how you do this safely.
+
+The product-brain version of all three: **an API choice is a product choice.** "Which is cheaper, faster, simpler, more private?" is the real question, and the answer flips from project to project. Just knowing these forks exist — and what each side trades away — is most of the battle.
+
+## Building it with an AI riding shotgun
+
+I'll say it plainly: I built a big chunk of this with an AI coding assistant, and it's worth being honest about, because it changed *what the hard part even was*. The AI was genuinely great at the "how" — cranking out boilerplate, standing up the database layer, and especially poking the voice API with little throwaway test scripts to learn how it *actually* behaved on my key. (That's literally how we caught the paid-search trap and a nasty "you're calling the wrong version of the API" bug *before* they turned into real problems.)
+
+But the things it couldn't do for me are the things that mattered: deciding *which* API to reach for, what the app should feel like, when to cut a feature, which tradeoff I was actually willing to live with. Which is this whole project's thesis showing up again — **the model is the easy part.** The AI made me faster at the typing; I'm still the one on the hook for the "what" and the "why." If you're earlier in your journey, I'd lean all the way into that: let the AI handle the keystrokes, but *you* make the calls — because the calls are the actual job.
+
+## Where I'd reach for this next
+
+A few patterns from this I'm absolutely stealing for my own stuff:
+- **Build the boring version first to understand it, then swap in the fancy one.** I won't pull in a managed "magic" service again without first knowing what it's hiding.
+- **Probe before you commit.** Five minutes of "let me just test what this thing actually does" saves you hours of confusion later.
+- **Treat speed as a feature** — and toss in a little personality. The personas were almost no code and made the whole thing feel *alive*.
+
+And now that I've got a reusable "talk to it and it talks back" loop sitting in my toolbox, I keep imagining where I'd drop it next: a hands-free helper while I'm cooking, a little voice journal I can just talk at, a coding buddy I can ask things out loud without breaking my flow. The fun twist is that the hard 800 milliseconds are *solved* now — so the next version is mostly just deciding what it's for.
 
 ## Where this sits in AI right now
 

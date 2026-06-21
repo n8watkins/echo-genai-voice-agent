@@ -16,8 +16,9 @@ speech-to-text (STT), text-to-speech (TTS), LLM streaming, Server-Sent Events,
 function calling / tool use, barge-in, turn-taking, low-latency voice, Web Speech
 API, Google Gemini.
 
-> **🔗 Live demo:** _TODO — deploy URL goes here._ (Until then, run it locally in
-> ~30 seconds; see [Run it locally](#run-it-locally). No API key required.)
+> **🔗 Live demo:** **<https://echo-kzw1.onrender.com>** — or run it locally in
+> ~30 seconds; see [Run it locally](#run-it-locally). No API key required.
+> (Free Render instance: the first hit after idle may cold-start for ~1 min.)
 
 The thesis, in one line: **the model was the easy part; the 800 milliseconds were
 the hard part.** The long version is in the blog posts below.

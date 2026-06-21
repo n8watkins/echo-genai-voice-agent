@@ -21,6 +21,7 @@
     "@picovoice/web-voice-processor": "^4.0.10",
     "lucide-react": "^0.460.0",
     "next": "^16.0.0",
+    "next-auth": "^5.0.0-beta.31",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

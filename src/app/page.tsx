@@ -33,6 +33,7 @@ import { UsagePill } from '@/components/UsageMeter';
 import SettingsDrawer from '@/components/SettingsDrawer';
 import ChatRail from '@/components/ChatRail';
 import { HeadsetTipBanner } from '@/components/HeadsetTip';
+import AuthButton from '@/components/AuthButton';
 
 export default function StagePage() {
   const { persona, personaId, selectPersona, personas } = usePersona();
@@ -174,6 +175,7 @@ export default function StagePage() {
           >
             <InformationCircleIcon className="w-5 h-5" />
           </button>
+          <AuthButton />
         </div>
       </header>
 

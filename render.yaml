@@ -43,3 +43,5 @@ services:
         sync: false          # optional — pairs with AUTH_GITHUB_ID
       - key: AUTH_SECRET
         sync: false          # required when AUTH_GITHUB_* are set — any random string
+      - key: AUTH_URL
+        sync: false          # prod canonical URL (https://<app>.onrender.com) — Auth.js OAuth callback host

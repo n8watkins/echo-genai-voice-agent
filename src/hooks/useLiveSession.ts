@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   GoogleGenAI,
   Modality,
+  type FunctionCall,
   type LiveServerMessage,
   type Session,
 } from '@google/genai';
@@ -203,10 +204,67 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     if (outputCtxRef.current) playheadRef.current = outputCtxRef.current.currentTime;
   }, []);
 
+  // ---- Tool calls: model asks to run a function -> exec server-side -> reply
+  // Tools (weather / time / web_search) are declared in the locked token config
+  // (/api/live-token). Execution runs server-side via /api/tool-exec so the
+  // web_search Tavily key never reaches the browser; we hand each result back
+  // with sendToolResponse and the model continues its spoken turn.
+  const handleToolCall = useCallback(
+    async (functionCalls: FunctionCall[]) => {
+      if (closedRef.current || !sessionRef.current) return;
+      transitionTo('thinking');
+      const functionResponses: Array<{
+        id?: string;
+        name?: string;
+        response: Record<string, unknown>;
+      }> = [];
+      for (const fc of functionCalls) {
+        const startedAt = Date.now();
+        let result: Record<string, unknown>;
+        try {
+          const res = await fetch('/api/tool-exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: fc.name, args: fc.args ?? {} }),
+          });
+          result = res.ok
+            ? ((await res.json()) as Record<string, unknown>)
+            : { error: `Tool failed (${res.status}).` };
+        } catch {
+          result = { error: 'Tool request failed.' };
+        }
+        functionResponses.push({ id: fc.id, name: fc.name, response: result });
+        pushTrace({
+          kind: 'tool_exec',
+          id: fc.id ?? crypto.randomUUID(),
+          name: fc.name ?? 'tool',
+          args: fc.args ?? {},
+          startedAt,
+          endedAt: Date.now(),
+          ok: !(typeof result === 'object' && 'error' in result),
+          rawResult: result,
+        });
+      }
+      if (closedRef.current || !sessionRef.current) return;
+      try {
+        sessionRef.current.sendToolResponse({ functionResponses });
+      } catch {
+        /* socket closing — ignore */
+      }
+    },
+    [pushTrace, transitionTo]
+  );
+
   // ---- Incoming server messages -------------------------------------------
   const handleMessage = useCallback(
     (msg: LiveServerMessage) => {
       if (closedRef.current) return;
+
+      // Tool call from the model: run it server-side, reply via sendToolResponse.
+      const toolCalls = msg.toolCall?.functionCalls;
+      if (toolCalls && toolCalls.length > 0) {
+        void handleToolCall(toolCalls);
+      }
 
       const content = msg.serverContent;
       const parts = content?.modelTurn?.parts ?? [];
@@ -271,7 +329,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
         transitionTo('listening');
       }
     },
-    [enqueueAudio, stopPlayback, pushTrace, transitionTo]
+    [enqueueAudio, stopPlayback, pushTrace, transitionTo, handleToolCall]
   );
 
   // ---- Mic capture: stream PCM16@16k to the session -----------------------

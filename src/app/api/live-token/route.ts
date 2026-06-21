@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { Modality } from '@google/genai';
 import { getClient, resolveApiKey } from '@/lib/gemini';
 import { LIVE_MODEL, LIVE_SYSTEM_INSTRUCTION } from '@/lib/live';
+import { functionDeclarations } from '@/lib/conversation/tools';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -64,10 +65,13 @@ export async function POST(req: NextRequest) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction,
-            // NOTE: native Google Search grounding (tools:[{googleSearch:{}}]) was
-            // tried here but the Live socket closes with 1011 "quota/billing" on the
-            // free key — grounding needs a paid tier. Live search would instead need
-            // Tavily via custom function calling (see HANDOFF). Left tool-less for now.
+            // Function-calling tools (weather / time / web_search via Tavily) —
+            // the SAME declarations Classic uses, locked into the token config
+            // here. The browser handles the model's toolCall by POSTing to
+            // /api/tool-exec and replying via sendToolResponse, so the Tavily key
+            // stays server-side. (Native googleSearch grounding was tried instead
+            // but needs a paid tier — it closes the socket with 1011 on free keys.)
+            tools: [{ functionDeclarations }],
           },
         },
       },

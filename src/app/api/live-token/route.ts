@@ -64,10 +64,10 @@ export async function POST(req: NextRequest) {
           config: {
             responseModalities: [Modality.AUDIO],
             systemInstruction,
-            // Native Google Search grounding: the model searches the web itself,
-            // server-side, and grounds its spoken answer — no client round-trip,
-            // no Tavily key. (Classic uses the hand-wired Tavily tool instead.)
-            tools: [{ googleSearch: {} }],
+            // NOTE: native Google Search grounding (tools:[{googleSearch:{}}]) was
+            // tried here but the Live socket closes with 1011 "quota/billing" on the
+            // free key — grounding needs a paid tier. Live search would instead need
+            // Tavily via custom function calling (see HANDOFF). Left tool-less for now.
           },
         },
       },

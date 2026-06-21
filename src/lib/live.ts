@@ -27,9 +27,7 @@ export const INPUT_MIME_TYPE = `audio/pcm;rate=${INPUT_SAMPLE_RATE}`;
 
 /** Default persona-less system instruction for the Live session. */
 export const LIVE_SYSTEM_INSTRUCTION =
-  'You are Echo, a warm, concise voice assistant. Keep replies short and conversational. ' +
-  'When the user asks about current events or facts you are unsure of, use Google Search ' +
-  'to look it up and answer from what you find.';
+  'You are Echo, a warm, concise voice assistant. Keep replies short and conversational.';
 
 /**
  * Encode a Float32 PCM frame ([-1,1]) to base64-encoded 16-bit little-endian

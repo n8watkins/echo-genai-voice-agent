@@ -132,7 +132,7 @@ They're deliberately opposite in shape, and that's the point of having both:
 | Transport | SSE (text only) | WebSocket, browser ↔ Gemini **directly** |
 | Audio | none server-side | PCM in 16 kHz / out 24 kHz |
 | Turn-taking | Echo's state machine + chunker | Server-side VAD + barge-in signal |
-| Web search | Tavily, hand-wired into the function-calling loop | Gemini's **native Google Search** grounding |
+| Web search | Tavily, hand-wired into the function-calling loop | not yet (native grounding needs a paid tier) |
 | Cost | free (STT/TTS in browser) | audio billed **as tokens** |
 
 Live (`src/hooks/useLiveSession.ts`, `src/lib/live.ts`) never gets the raw API

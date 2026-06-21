@@ -210,6 +210,24 @@ curl -L -o public/models/porcupine_params.pv \
 Caveats (also shown in the UI): the tab must stay open (a web app has no OS-level
 background listening), Chrome/Edge + mic permission required.
 
+### Web search (optional, Tavily)
+
+Two of Echo's three tools (`get_current_time`, `get_weather`) are keyless and work
+out of the box. The third, `web_search`, does a **live web lookup via
+[Tavily](https://app.tavily.com)** — a search API built for LLMs that returns clean
+extracted content plus a synthesized answer. It's **off until you add a key**:
+
+```bash
+# .env.local — or set it in your host's env (e.g. Render → Environment)
+TAVILY_API_KEY=tvly-...
+```
+
+Grab a free key at [app.tavily.com](https://app.tavily.com) (~1,000 searches/month, no
+card). Without it, `web_search` degrades gracefully — Echo answers from the model's own
+knowledge and says it couldn't search the live web. The tool *declaration* is
+provider-agnostic, so swapping Tavily for another search backend is a change to a single
+function in `src/lib/conversation/tools.ts`.
+
 ## Demo key + BYOK
 
 Like the rest of the portfolio: instant use on a shared demo key with a usage

@@ -55,7 +55,7 @@ the hard part.** The long version is in the blog posts below.
   tokens, tool calls, and the turn-state timeline. The 800ms budget made
   literal - and it runs for *both* engines.
 - 🎚️ **Model picker** - swap the text/tool model from Settings. The shared demo
-  key runs `gemini-3.1-flash-lite`; 2.5 / 3 / 3.5 Flash variants unlock with
+  key runs `gemini-3.5-flash-lite`; 3.1 Flash Lite and 2.5 / 3 / 3.5 Flash unlock with
   your own key.
 
 ## Why it's interesting
@@ -160,7 +160,7 @@ Echo's tools are plain function declarations dispatched in the chat route
 ## Tech stack
 
 **TypeScript · Next.js 16 (App Router) · React 19 · Tailwind v4 · `@google/genai`
-(Gemini `gemini-3.1-flash-lite` text/tools + `gemini-3.1-flash-live-preview` for
+(Gemini `gemini-3.5-flash-lite` text/tools + `gemini-3.1-flash-live-preview` for
 the Live engine) · Web Speech API · Server-Sent Events · WebSocket (Live).**
 
 > **SDK note:** Echo uses the current **`@google/genai`** SDK, not the legacy
@@ -188,7 +188,7 @@ typed input works everywhere.
 | Var | Purpose |
 |---|---|
 | `GEMINI_API_KEY` | Server demo-key fallback (optional; BYOK preferred). |
-| `ECHO_MODEL` | Default text/tool model id (the in-app model picker can override per session; BYOK models are server-validated). Defaults to `gemini-3.1-flash-lite`. |
+| `ECHO_MODEL` | Default text/tool model id (the in-app model picker can override per session; BYOK models are server-validated). Defaults to `gemini-3.5-flash-lite`. |
 | `TAVILY_API_KEY` | Optional - enables the `web_search` tool via Tavily (free key at [app.tavily.com](https://app.tavily.com)). Without it, Echo answers from its own knowledge. |
 | `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional - enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
 | `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Optional - saving conversations ([Turso](https://turso.tech)/libSQL). Absent → conversations are in-memory only. |

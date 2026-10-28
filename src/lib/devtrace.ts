@@ -58,13 +58,14 @@ export type TraceEvent =
     };
 
 /**
- * Per-1M-token paid rates (docs/UNDER_THE_HOOD.md §6, verified 2026-06-14).
+ * Per-1M-token paid rates (docs/UNDER_THE_HOOD.md §6, verified 2026-06-14; 3.5 Flash Lite added 2026-10-27).
  * Used only for the illustrative "what this would cost at scale" readout - the
  * live demo runs on the free tier. Live/audio models are intentionally absent:
  * audio-token pricing is unconfirmed, so those modes show tokens + TPM
  * headroom, not a $ figure (§9).
  */
 export const MODEL_PRICING: Record<string, { inPerM: number; outPerM: number }> = {
+  'gemini-3.5-flash-lite': { inPerM: 0.3, outPerM: 2.5 },
   'gemini-3.1-flash-lite': { inPerM: 0.25, outPerM: 1.5 },
   'gemini-2.5-flash-lite': { inPerM: 0.1, outPerM: 0.4 },
   'gemini-2.5-flash': { inPerM: 0.3, outPerM: 2.5 },

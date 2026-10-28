@@ -7,7 +7,7 @@ type SpeechApi = ReturnType<typeof useSpeech>;
 
 /**
  * Compact voice quick-select for the top bar. Lists recommended voices (falls
- * back to all) and reuses the same useSpeech data — full controls (rate/pitch,
+ * back to all) and reuses the same useSpeech data - full controls (rate/pitch,
  * all voices, preview) live in the settings drawer's VoicePicker.
  */
 export default function VoiceQuickSelect({ speech }: { speech: SpeechApi }) {

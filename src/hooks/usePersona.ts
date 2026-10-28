@@ -12,7 +12,7 @@ import {
 /**
  * Active-persona state, persisted in localStorage (`echo_persona`). Selecting a
  * persona only changes the system-prompt text sent to /api/chat plus the shown
- * voice hint and starter prompts — no extra model calls.
+ * voice hint and starter prompts - no extra model calls.
  */
 export function usePersona() {
   const [personaId, setPersonaId] = useState<string>(DEFAULT_PERSONA_ID);

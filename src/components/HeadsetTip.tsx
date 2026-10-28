@@ -6,7 +6,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 const TIP_DISMISSED_KEY = 'echo_headset_tip_dismissed';
 
 const TIP_TEXT =
-  "Headphones recommended — in hands-free mode Echo's mic can pick up its own voice and interrupt itself. Headphones prevent that.";
+  "Headphones recommended - in hands-free mode Echo's mic can pick up its own voice and interrupt itself. Headphones prevent that.";
 
 /**
  * Dismissible headset tip banner. Shows the first time hands-free is active and

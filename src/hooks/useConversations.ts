@@ -32,7 +32,7 @@ export function useConversations() {
       const data = await res.json();
       setList(Array.isArray(data.conversations) ? data.conversations : []);
     } catch {
-      /* offline / not configured — leave list as-is */
+      /* offline / not configured - leave list as-is */
     }
   }, [signedIn]);
 

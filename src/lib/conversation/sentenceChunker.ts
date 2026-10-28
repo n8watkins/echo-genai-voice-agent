@@ -7,7 +7,7 @@
  * then start talking on sentence one.
  *
  * It also strips markdown/emoji that a synthesizer would otherwise read
- * literally, and — crucially per the plan's §12a — it tolerates the mid-stream
+ * literally, and - crucially per the plan's §12a - it tolerates the mid-stream
  * pause caused by a tool call: `push()` simply keeps buffering across the gap,
  * and a half-finished sentence is never flushed until it actually completes or
  * `flush()` is called at the very end.

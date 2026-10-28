@@ -1,12 +1,12 @@
 /**
- * Personas — the biggest "make it yours" feature.
+ * Personas - the biggest "make it yours" feature.
  *
  * Each persona only changes the *system-prompt text* sent to /api/chat (no extra
  * model calls, no new APIs), plus a voice hint used to auto-pick a matching
  * browser voice and a set of spoken-style starter prompts.
  *
  * All system prompts are written spoken-style: short sentences, plain words, no
- * markdown — they feed a text-to-speech engine. They each inherit the same hard
+ * markdown - they feed a text-to-speech engine. They each inherit the same hard
  * TTS rules as the default prompt so tools and barge-in keep working.
  */
 

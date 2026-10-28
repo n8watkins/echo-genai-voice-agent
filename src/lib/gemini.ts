@@ -14,7 +14,7 @@ export const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
 /**
  * The one model that may run on the SHARED demo key. It has the highest free-
  * tier quota (500 req/day) and the lowest latency (which matters for the voice
- * loop). Every other model is BYOK-only — visitors must paste their own key.
+ * loop). Every other model is BYOK-only - visitors must paste their own key.
  */
 export const SHARED_MODEL = 'gemini-3.1-flash-lite';
 
@@ -37,7 +37,7 @@ export const MODELS: ModelOption[] = [
     id: 'gemini-3.1-flash-lite',
     label: 'Gemini 3.1 Flash Lite',
     tier: 'shared',
-    blurb: 'Fastest & free on the shared key — the default.',
+    blurb: 'Fastest & free on the shared key - the default.',
   },
   {
     id: 'gemini-2.5-flash-lite',
@@ -100,7 +100,7 @@ export function resolveApiKey(userKey?: string | null): ResolvedKey | null {
 /**
  * Build a GoogleGenAI client. Pass `apiVersion: 'v1alpha'` for the Live API /
  * ephemeral-token surface (`ai.live`, `ai.authTokens`), which is NOT exposed on
- * the default `v1beta` endpoint — calling `authTokens.create` on v1beta returns
+ * the default `v1beta` endpoint - calling `authTokens.create` on v1beta returns
  * a bare `404 Not Found`. Text/tool calls stay on the default (v1beta).
  */
 export function getClient(apiKey: string, apiVersion?: string): GoogleGenAI {

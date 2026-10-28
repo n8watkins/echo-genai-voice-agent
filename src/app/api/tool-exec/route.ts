@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
  *
  * The Live model runs in the browser (direct WebSocket to Gemini), so when it
  * emits a function call the browser POSTs {name, args} here. We run the SAME
- * server-side `dispatchTool` the Classic chat route uses — which keeps the
- * `web_search` Tavily key server-only — and return the result for the client to
+ * server-side `dispatchTool` the Classic chat route uses - which keeps the
+ * `web_search` Tavily key server-only - and return the result for the client to
  * hand back to the model via `session.sendToolResponse`.
  *
  * The allowlist mirrors the tool declarations in lib/conversation/tools.ts so a

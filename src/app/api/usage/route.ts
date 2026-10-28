@@ -11,11 +11,11 @@ export const dynamic = 'force-dynamic';
  * the instance cold-starts (and resets `used`) after idle spin-down, so this is
  * a best-effort soft guard, not a hard global ceiling. A durable, cross-process
  * cap would store the rolling counter in an external KV (e.g. Upstash Redis)
- * keyed by day — intentionally not added here to keep the demo dependency-free.
+ * keyed by day - intentionally not added here to keep the demo dependency-free.
  *
  * The shared demo key is used by more than one portfolio app, so we count
  * EVERY actual model call (a single chat turn can fire up to MAX_TOOL_ROUNDS
- * `generateContentStream` calls) — and we count even on error/abort once the
+ * `generateContentStream` calls) - and we count even on error/abort once the
  * model has been hit. BYOK requests never draw down the pool.
  */
 
@@ -34,7 +34,7 @@ function rollWindow() {
 
 /**
  * Called by /api/chat once per ACTUAL `generateContentStream` call against the
- * demo key — including calls that subsequently error or are aborted, since the
+ * demo key - including calls that subsequently error or are aborted, since the
  * model was still hit. BYOK calls pass source 'byok' and are not counted.
  */
 export function recordModelCall(source: 'byok' | 'demo') {

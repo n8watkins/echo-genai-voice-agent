@@ -48,7 +48,7 @@ export default function MicButton({
         >
           <MicrophoneIcon className={iconSize} />
         </button>
-        <span className={`${labelSize} text-gray-400 whitespace-nowrap`}>No mic — type below</span>
+        <span className={`${labelSize} text-gray-400 whitespace-nowrap`}>No mic - type below</span>
       </div>
     );
   }

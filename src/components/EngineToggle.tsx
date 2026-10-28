@@ -5,7 +5,7 @@ import type { VoiceEngine } from '@/hooks/useVoiceEngine';
 /**
  * Segmented Classic | Live toggle for the top bar (docs/UNDER_THE_HOOD.md §4d).
  * Switches the voice backend underneath the same UI: the hand-built pipeline
- * vs. Gemini's native Live API. Switching to Live does NOT open a socket — the
+ * vs. Gemini's native Live API. Switching to Live does NOT open a socket - the
  * user still has to click Connect on the stage (TPM budget).
  */
 export default function EngineToggle({
@@ -35,7 +35,7 @@ export default function EngineToggle({
         aria-checked={engine === 'classic'}
         disabled={disabled}
         onClick={() => onChange('classic')}
-        title="Classic — the hand-built pipeline (Web Speech STT + streamed text + browser TTS)"
+        title="Classic - the hand-built pipeline (Web Speech STT + streamed text + browser TTS)"
         className={`${base} ${engine === 'classic' ? active : inactive}`}
       >
         Classic
@@ -45,7 +45,7 @@ export default function EngineToggle({
         aria-checked={engine === 'live'}
         disabled={disabled}
         onClick={() => onChange('live')}
-        title="Live — Gemini's native Live API (realtime PCM audio over WebSocket)"
+        title="Live - Gemini's native Live API (realtime PCM audio over WebSocket)"
         className={`${base} ${engine === 'live' ? active : inactive}`}
       >
         Live

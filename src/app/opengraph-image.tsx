@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Echo — Realtime Voice Agent';
+export const alt = 'Echo - Realtime Voice Agent';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -82,7 +82,7 @@ export default function OpengraphImage() {
             maxWidth: 980,
           }}
         >
-          Talk to an AI that talks back — streamed, interruptible, real-time.
+          Talk to an AI that talks back - streamed, interruptible, real-time.
         </div>
 
         {/* portfolio mark */}

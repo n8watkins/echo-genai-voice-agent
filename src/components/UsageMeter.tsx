@@ -3,7 +3,7 @@
 import { type UsageInfo, poolPercentUsed, formatPoolReset } from '@/hooks/useUsageInfo';
 
 /**
- * Compact demo-pool indicator for the top bar — a small bar + "% left" with a
+ * Compact demo-pool indicator for the top bar - a small bar + "% left" with a
  * native tooltip. The full meter (reset copy, etc.) lives in the settings
  * drawer. Reads the same UsageInfo snapshot.
  */
@@ -30,8 +30,8 @@ export function UsagePill({ usage }: { usage: UsageInfo | null }) {
     exhausted || pctUsed >= 90 ? 'bg-rose-400' : pctUsed >= 70 ? 'bg-amber-400' : 'bg-teal-400';
   const reset = formatPoolReset(usage.pool.resetAt);
   const tip = exhausted
-    ? `Demo capacity used up${reset ? ` — resets ${reset}` : ''}. Add your own free key.`
-    : `Shared demo pool — ${pctLeft}% left${reset ? ` · resets ${reset}` : ''}`;
+    ? `Demo capacity used up${reset ? ` - resets ${reset}` : ''}. Add your own free key.`
+    : `Shared demo pool - ${pctLeft}% left${reset ? ` · resets ${reset}` : ''}`;
 
   return (
     <div
@@ -67,7 +67,7 @@ export function PoolMeterBar({ usage }: { usage: UsageInfo | null }) {
           <div className="h-full w-1/3 bg-cyan-400/60 animate-pulse rounded-full" />
         </div>
         <p className="text-xs mt-1 text-cyan-200/60">
-          You can talk right away — live capacity will appear here.
+          You can talk right away - live capacity will appear here.
         </p>
       </div>
     );
@@ -91,7 +91,7 @@ export function PoolMeterBar({ usage }: { usage: UsageInfo | null }) {
       </div>
       <p className="text-xs mt-1 text-cyan-200/60">
         {exhausted
-          ? `Demo capacity used up${reset ? ` — resets ${reset}` : ''}. Add your own free key to keep talking.`
+          ? `Demo capacity used up${reset ? ` - resets ${reset}` : ''}. Add your own free key to keep talking.`
           : reset
             ? `Resets ${reset}`
             : 'Everyone shares this free demo budget'}

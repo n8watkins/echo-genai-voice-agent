@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 /**
  * "Under the hood" dev-view toggle (localStorage). Mirrors useModel/useApiKey:
  * SSR-safe (starts off, hydrates from storage in an effect) and syncs across
- * hook instances via a window event. Off by default — the normal product is
+ * hook instances via a window event. Off by default - the normal product is
  * untouched until a visitor opts in.
  */
 

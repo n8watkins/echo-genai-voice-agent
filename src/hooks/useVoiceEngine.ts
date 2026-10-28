@@ -7,9 +7,9 @@ import { useEffect, useState } from 'react';
  * (starts at 'classic', hydrates from storage in an effect) and syncs across
  * hook instances via a window event.
  *
- *  - 'classic' — the hand-built pipeline (Web Speech STT + SSE text + browser
+ *  - 'classic' - the hand-built pipeline (Web Speech STT + SSE text + browser
  *    TTS). The DEFAULT; behaves exactly as before.
- *  - 'live'    — Gemini native Live API (ai.live.connect). Opt-in; only opens a
+ *  - 'live'    - Gemini native Live API (ai.live.connect). Opt-in; only opens a
  *    socket on an explicit Connect click (TPM budget, §7).
  */
 

@@ -6,8 +6,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  * On-device wake-word detection via Picovoice Porcupine (OPTIONAL).
  *
  * Gated entirely on NEXT_PUBLIC_PICOVOICE_ACCESS_KEY. The Porcupine + web voice
- * processor modules are loaded lazily — only when the user enables the toggle
- * and a key is present — so the app never pays the bundle/runtime cost (or
+ * processor modules are loaded lazily - only when the user enables the toggle
+ * and a key is present - so the app never pays the bundle/runtime cost (or
  * breaks) when the key is absent.
  *
  * Honest caveats (surfaced in the UI/README): this only works while the Echo
@@ -24,7 +24,7 @@ export const WAKE_WORD_AVAILABLE = PICOVOICE_ACCESS_KEY.length > 0;
 /** The built-in keyword we listen for. */
 export const WAKE_KEYWORD = 'Computer';
 
-// Loosely typed handles — the modules are dynamically imported so we avoid a
+// Loosely typed handles - the modules are dynamically imported so we avoid a
 // hard dependency at module-eval time.
 type PorcupineWorkerLike = {
   release: () => Promise<void>;
@@ -71,7 +71,7 @@ export function useWakeWord({ onWake }: UseWakeWordOptions) {
     setStatus('starting');
     setError(null);
     try {
-      // Lazy-load only now — keeps these out of the bundle path until used.
+      // Lazy-load only now - keeps these out of the bundle path until used.
       const [{ PorcupineWorker, BuiltInKeyword }, { WebVoiceProcessor }] = await Promise.all([
         import('@picovoice/porcupine-web'),
         import('@picovoice/web-voice-processor'),

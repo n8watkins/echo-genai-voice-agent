@@ -49,7 +49,7 @@ export default function ModelPicker() {
             return (
               <option key={m.id} value={m.id} disabled={locked}>
                 {m.label}
-                {m.tier === 'byok' ? ' — needs your own key' : ''}
+                {m.tier === 'byok' ? ' - needs your own key' : ''}
               </option>
             );
           })}

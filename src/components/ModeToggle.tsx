@@ -29,7 +29,7 @@ export default function ModeToggle({
         aria-checked={handsFree}
         disabled={disabled}
         onClick={() => onChange(true)}
-        title="Hands-free — Echo listens continuously and you can interrupt it"
+        title="Hands-free - Echo listens continuously and you can interrupt it"
         className={`${base} ${
           handsFree
             ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-sm shadow-cyan-500/30'
@@ -43,7 +43,7 @@ export default function ModeToggle({
         aria-checked={!handsFree}
         disabled={disabled}
         onClick={() => onChange(false)}
-        title="Push-to-talk — hold the mic button to speak"
+        title="Push-to-talk - hold the mic button to speak"
         className={`${base} ${
           !handsFree
             ? 'bg-gradient-to-r from-cyan-500 to-teal-500 text-white shadow-sm shadow-cyan-500/30'

@@ -2,6 +2,82 @@
 
 > Zero-context handoff for **Echo**, a realtime voice agent. Read this in full before working. Don't re-ask decisions recorded here. Build plan: `VOICE_AGENT_PLAN.md` (this folder).
 
+## Current state and open work (2026-10-27): start here
+
+This section is the entry point.
+The older sections below are history from June 2026; where they disagree with this section, this section wins.
+
+### What it is and where it lives
+
+Echo is a realtime voice agent: you talk, it streams a reply and speaks it, you can interrupt, and it can call tools (weather, time, Tavily web search).
+It has two voice engines: Classic (browser speech-to-text, streamed Gemini text, browser text-to-speech) and Live (Gemini's native Live API audio over WebSocket).
+Live demo: https://echo-kzw1.onrender.com (Render free plan, service `echo-genai-voice-agent`).
+It is listed on the owner's portfolio, https://portfolio.n8builds.dev, which shows OpenPing's live status next to it.
+Repo: `n8watkins/echo-genai-voice-agent` (default branch `master`), MIT license as of 2026-10-27.
+
+### Status as of 2026-10-27
+
+- Live and current: Render auto-deployed `9da3b84` (the em dash fix, PR #2) on 2026-10-28 UTC.
+  The page title is now "Echo - Realtime Voice Agent".
+- `/api/healthz` returns `{"status":"ok","hasDemoKey":true,"model":"gemini-3.1-flash-lite"}`.
+- Render free plan: the service sleeps after about 15 minutes idle and a cold start takes about a minute.
+  OpenPing measures 90-day uptime at 96.6%.
+  Render's event log shows every free service in the workspace suspended for "Free Tier Usage Exceeded" from 2026-07-24 to 2026-08-01, so keeping several free services warm burns the shared 750 instance-hours.
+- The service runs Render's native Node runtime with `NODE_VERSION=22` (supported).
+- Checks run locally today: lint and type-check clean, `vitest` 49/49 pass.
+
+### Model plan (open PR, do not merge before the key step)
+
+The owner decided on 2026-10-27 to move every Gemini text model to Gemini 3.5 Flash Lite.
+The exact ID `gemini-3.5-flash-lite` was confirmed on https://ai.google.dev/gemini-api/docs/models (listed as Stable, on the free tier).
+
+- **Text and tool model: switching.**
+  **PR #3** (https://github.com/n8watkins/echo-genai-voice-agent/pull/3) moves `DEFAULT_MODEL` and `SHARED_MODEL` in `src/lib/gemini.ts` to `gemini-3.5-flash-lite`, keeps 3.1 Flash Lite as a BYOK option in the picker, adds its price to the dev panel, and updates README, `.env.example`, `docs/UNDER_THE_HOOD.md` and `docs/QA_TESTING.md`.
+  It is intentionally left open, because it can't be verified end to end until the owner's new Gemini key is on Render.
+- **Live engine model: not switched, on purpose.**
+  `LIVE_MODEL = 'gemini-3.1-flash-live-preview'` in `src/lib/live.ts` is a realtime native-audio model for the Live API, not a text model, and there is no Flash Lite Live model to move to.
+  Google's models page now labels it a legacy preview and recommends `gemini-3.8-live`.
+  Moving the Live engine is a separate decision for the owner: check the new model's free-tier access on the new key first (the June probe confirmed 3.1 Flash Live was free), then test barge-in and tools in a real mic session.
+- **Render env pins the old model.**
+  The service has `ECHO_MODEL=gemini-3.1-flash-lite` set, and it overrides the code default, so it must change with the merge.
+
+Order: owner sets the new `GEMINI_API_KEY` on `echo-genai-voice-agent` and changes `ECHO_MODEL` to `gemini-3.5-flash-lite` (or deletes it), then merge PR #3 (squash), then a live check: `/api/healthz` reports `gemini-3.5-flash-lite`, a Classic voice turn and a typed turn that calls a tool both answer, and the Live engine still connects.
+
+### Open problems
+
+1. **Security, HIGH (live public site): Next.js has known critical advisories.**
+   `package-lock.json` locks `next` 16.2.9.
+   GitHub's advisory database (checked 2026-10-27) lists 5 critical, 6 high, 8 moderate and 1 low advisories for it, including unauthenticated remote code execution in `use cache`, Image Optimization and `next/og` (Echo uses `next/og` for `src/app/opengraph-image.tsx`).
+   All are fixed in `next` >= 16.4.1.
+   Fix: upgrade `next` (and `eslint-config-next` to match) to the latest 16.x (>= 16.4.1), run `npm run lint`, `npm run type-check`, `npm run build` and `npm test`, merge so Render deploys, then a live check (page, OG image at `/opengraph-image`, a voice turn, sign-in).
+2. **A duplicate Render service keeps being created by the Blueprint.**
+   Render Blueprint `echo` (`exs-d8riktu7r5hc73eddpmg`) syncs `render.yaml` on every push that changes it.
+   `render.yaml` names the service `echo`, but the real service is `echo-genai-voice-agent` and is not managed by that Blueprint, so each sync creates or keeps a separate service called `echo`.
+   It happened again on 2026-10-28 06:06 UTC when PR #2 edited comments in `render.yaml`: a new free service `echo` (`srv-dbgp1j1srm7s73eejav0`, https://echo-a8ec.onrender.com) is live with no demo key (`hasDemoKey:false`).
+   The June duplicate (`srv-d8rmci6gvqtc73f86ob0`) had the same cause.
+   Not fixed in code, because renaming the service in `render.yaml` would make the Blueprint start applying its settings to the live service, which is a hosting change for the owner to decide.
+   Reproduce: Render dashboard, Blueprints, `echo`, or list services and look for two Echo services.
+3. **Manual in-browser QA is still owed** for both voice engines, sign-in, and saved conversations; see "Next steps" below and `docs/QA_TESTING.md`.
+4. **Status display on the portfolio.**
+   OpenPing currently shows off-hours (weekend) monitors as "operational"; the fix is tracked in the open-ping repo, not here.
+
+### Blocked on the owner
+
+- Create the new Gemini API key and set it as `GEMINI_API_KEY` on `echo-genai-voice-agent`; change or delete `ECHO_MODEL` there (see "Model plan").
+- Delete the duplicate service `echo` (`echo-a8ec.onrender.com`), and fix the Blueprint so it stops recreating it: either delete the `echo` Blueprint (the real service deploys from git on its own), or point it at the real service by renaming the service in `render.yaml` to `echo-genai-voice-agent` and accepting that the Blueprint then manages it.
+  Until then, avoid editing `render.yaml`.
+- Planned subdomain `echo.n8builds.dev`: add it as a custom domain on the Render service and add the Cloudflare CNAME Render asks for.
+  After it resolves, set `NEXT_PUBLIC_APP_URL` and `AUTH_URL` to `https://echo.n8builds.dev` on Render and add `https://echo.n8builds.dev/api/auth/callback/github` to the GitHub OAuth app, or sign-in breaks on the new address.
+
+### Next steps, in order
+
+1. Owner: new key, `ECHO_MODEL`, duplicate service and Blueprint (above).
+2. Upgrade `next` to the latest 16.x (open problem 1) in its own PR, verify, deploy, check live.
+3. Merge PR #3, then run the live check described in "Model plan".
+4. Decide whether to move the Live engine to `gemini-3.8-live` (see "Model plan"), then test it in a real mic session.
+5. Manual in-browser QA from `docs/QA_TESTING.md`.
+6. When the owner has set up `echo.n8builds.dev`, update the README live-demo link and the `metadataBase` default in `src/app/layout.tsx`.
+
 ## 🧭 Session #3 wrap - current state & next move (READ ME FIRST)
 
 **Echo is deployed, live, and feature-complete on both voice engines, with optional GitHub auth + Turso persistence.** New agent: read this file top-to-bottom, then `README.md`. Live: <https://echo-kzw1.onrender.com>. Repo is clean, `master == origin/master` (use `git log` for HEAD).

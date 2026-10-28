@@ -1,7 +1,7 @@
 import { getDb } from './db';
 
 /**
- * Conversation persistence (Turso). All access is scoped by `ownerId` — the
+ * Conversation persistence (Turso). All access is scoped by `ownerId` - the
  * per-browser anonymous id that owns a conversation. Reads/deletes require the
  * matching ownerId; saves can't hijack another browser's conversation id.
  *

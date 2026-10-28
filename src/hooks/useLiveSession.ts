@@ -20,7 +20,7 @@ import {
 } from '@/lib/live';
 
 /**
- * Mode B — the native Gemini Live API voice engine (docs/UNDER_THE_HOOD.md
+ * Mode B - the native Gemini Live API voice engine (docs/UNDER_THE_HOOD.md
  * §4d). A PARALLEL code path to the hand-built useVoiceAgent pipeline; the two
  * never run at once (the engine toggle picks one). This hook owns the entire
  * Live lifecycle:
@@ -33,14 +33,14 @@ import {
  *   4. play received PCM@24k chunks through a scheduled Web Audio queue
  *   5. clean up socket + audio graph on disconnect/unmount
  *
- * Telemetry: emits the SAME TraceEvent shape the DevPanel already renders —
+ * Telemetry: emits the SAME TraceEvent shape the DevPanel already renders -
  * `state` transitions (idle/listening/thinking/speaking) and a `turn-total`
  * stage (user-speech-end -> first audio out), plus a tokens/TPM model_call so
  * the side-by-side comparison with Classic mode is concrete. Per §9 the panel
  * shows tokens (no $) for Live since audio pricing is unconfirmed.
  *
  * Gating: connect() only runs on an explicit user action (the engine toggle's
- * "Connect" click). Nothing opens a socket on mount — that protects the shared
+ * "Connect" click). Nothing opens a socket on mount - that protects the shared
  * TPM budget.
  */
 
@@ -95,7 +95,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
   const outputCtxRef = useRef<AudioContext | null>(null);
   // Next time (in output AudioContext clock) at which to schedule a chunk.
   const playheadRef = useRef(0);
-  // Output source nodes scheduled but not yet finished — tracked so a barge-in
+  // Output source nodes scheduled but not yet finished - tracked so a barge-in
   // can actually stop in-flight audio (resetting the playhead alone doesn't).
   const scheduledNodesRef = useRef<AudioBufferSourceNode[]>([]);
   // Guards against late callbacks after a disconnect.
@@ -141,7 +141,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
   // ---- Turn-log commit helpers --------------------------------------------
   // Flush the pending user / assistant transcription into a committed LogTurn.
   // Called when the speaking role switches, on turnComplete, on barge-in, and on
-  // disconnect — so the look-back transcript stays complete and ordered.
+  // disconnect - so the look-back transcript stays complete and ordered.
   const commitUserTurn = useCallback(() => {
     const text = pendingUserRef.current.trim();
     pendingUserRef.current = '';
@@ -232,7 +232,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
   }, []);
 
   // Cut off all scheduled/in-flight output audio immediately (barge-in). The
-  // `interrupted` server signal means the user is talking over Echo — stop the
+  // `interrupted` server signal means the user is talking over Echo - stop the
   // queued buffers so they actually hear themselves take the floor.
   const stopPlayback = useCallback(() => {
     for (const node of scheduledNodesRef.current) {
@@ -292,7 +292,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
       try {
         sessionRef.current.sendToolResponse({ functionResponses });
       } catch {
-        /* socket closing — ignore */
+        /* socket closing - ignore */
       }
     },
     [pushTrace, transitionTo]
@@ -351,7 +351,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
         setPartialReply(pendingAssistantRef.current);
       }
 
-      // Token accounting (no $ for audio per §9 — show tokens/TPM headroom).
+      // Token accounting (no $ for audio per §9 - show tokens/TPM headroom).
       const usage = msg.usageMetadata;
       if (usage?.totalTokenCount) {
         tokensRef.current = usage.totalTokenCount;
@@ -365,7 +365,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
           endedAt: Date.now(),
           tokensIn: usage.promptTokenCount ?? 0,
           tokensOut: usage.responseTokenCount ?? 0,
-          // No $ rate for audio models — devtrace.estimateCostUsd returns 0 and
+          // No $ rate for audio models - devtrace.estimateCostUsd returns 0 and
           // DevPanel shows "no $ rate" via hasPricing(). Intentional (§9).
           costUsd: 0,
         });
@@ -408,7 +408,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
       try {
         sessionRef.current.sendClientContent({ turns: trimmed, turnComplete: true });
       } catch {
-        /* socket closing — ignore */
+        /* socket closing - ignore */
       }
     },
     [stopPlayback, commitAssistantTurn, commitUserTurn, transitionTo]
@@ -434,7 +434,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     sourceNodeRef.current = source;
 
     // ScriptProcessor is deprecated but universally available and needs no
-    // separate worklet-module file — adequate for a 16 kHz mono mic stream.
+    // separate worklet-module file - adequate for a 16 kHz mono mic stream.
     // (An AudioWorklet is the lower-jitter upgrade; noted as a TODO.)
     const processor = ctx.createScriptProcessor(4096, 1, 1);
     processorRef.current = processor;
@@ -449,7 +449,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
           audio: { data, mimeType: INPUT_MIME_TYPE },
         });
       } catch {
-        /* socket may be closing — ignore */
+        /* socket may be closing - ignore */
       }
       // Telemetry: while audio flows and we're idle/listening, the user is
       // (likely) speaking; the model's VAD decides turn boundaries server-side.
@@ -519,7 +519,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
           },
           onclose: () => {
             if (closedRef.current) return;
-            // Server-initiated close — tear down cleanly.
+            // Server-initiated close - tear down cleanly.
             sessionRef.current = null;
             teardownAudio();
             transitionTo('idle');
@@ -546,7 +546,7 @@ export function useLiveSession(options: UseLiveSessionOptions = {}): UseLiveSess
     }
   }, [handleMessage, startMicCapture, teardownAudio, transitionTo]);
 
-  // Unmount cleanup — never leak a socket or mic.
+  // Unmount cleanup - never leak a socket or mic.
   useEffect(() => {
     return () => {
       closedRef.current = true;

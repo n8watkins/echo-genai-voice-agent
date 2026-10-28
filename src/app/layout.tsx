@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Providers from '@/components/Providers';
 
-const title = 'Echo — Realtime Voice Agent';
+const title = 'Echo - Realtime Voice Agent';
 const description =
-  'Talk to an AI and it talks back — in real time, interruptible, with tools. A portfolio project by Nathan Watkins.';
+  'Talk to an AI and it talks back - in real time, interruptible, with tools. A portfolio project by Nathan Watkins.';
 
 // Canonical URL for OG / share cards. Override with NEXT_PUBLIC_APP_URL (e.g. a
 // future custom domain); defaults to the live Render deploy so previews resolve.

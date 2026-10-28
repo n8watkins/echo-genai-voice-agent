@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * Ephemeral-token mint for the native Live API voice engine (Mode B).
  *
  * The browser connects DIRECTLY to Gemini over WebSocket for lowest latency
- * (docs/UNDER_THE_HOOD.md §4d), so it needs a credential — but the raw demo
+ * (docs/UNDER_THE_HOOD.md §4d), so it needs a credential - but the raw demo
  * key must NEVER ship to the client. Instead this server route mints a
  * short-lived, single-use ephemeral token (`ai.authTokens.create`) scoped to
  * the Live model + AUDIO modality, and returns only the token NAME. The token
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   try {
     body = (await req.json()) as LiveTokenBody;
   } catch {
-    // Empty body is fine — system prompt is optional.
+    // Empty body is fine - system prompt is optional.
   }
 
   // v1: only the server demo key mints Live tokens. (Pass no user key so we
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
             // turn log (what the user said + what Echo said) for the rail.
             inputAudioTranscription: {},
             outputAudioTranscription: {},
-            // Function-calling tools (weather / time / web_search via Tavily) —
+            // Function-calling tools (weather / time / web_search via Tavily) -
             // the SAME declarations Classic uses, locked into the token config
             // here. The browser handles the model's toolCall by POSTing to
             // /api/tool-exec and replying via sendToolResponse, so the Tavily key
             // stays server-side. (Native googleSearch grounding was tried instead
-            // but needs a paid tier — it closes the socket with 1011 on free keys.)
+            // but needs a paid tier - it closes the socket with 1011 on free keys.)
             tools: [{ functionDeclarations }],
           },
         },

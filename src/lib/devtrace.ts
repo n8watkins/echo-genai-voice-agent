@@ -4,7 +4,7 @@
  * Purely observational: a turn of Echo's pipeline emits a list of TraceEvents
  * (model calls, tool execs, pipeline stages, turn-machine state transitions)
  * that the DevPanel renders as a latency waterfall + token/cost readout. None
- * of this changes the voice pipeline's behavior — events are recorded
+ * of this changes the voice pipeline's behavior - events are recorded
  * alongside the existing logic.
  *
  * Design spec lives in docs/UNDER_THE_HOOD.md (§3 schema, §6 pricing). Echo
@@ -16,7 +16,7 @@ export type TraceEvent =
   | {
       kind: 'model_call';
       id: string;
-      /** e.g. 'chat-turn' — Echo's text model phase. */
+      /** e.g. 'chat-turn' - Echo's text model phase. */
       phase: string;
       model: string;
       startedAt: number;
@@ -59,7 +59,7 @@ export type TraceEvent =
 
 /**
  * Per-1M-token paid rates (docs/UNDER_THE_HOOD.md §6, verified 2026-06-14).
- * Used only for the illustrative "what this would cost at scale" readout — the
+ * Used only for the illustrative "what this would cost at scale" readout - the
  * live demo runs on the free tier. Live/audio models are intentionally absent:
  * audio-token pricing is unconfirmed, so those modes show tokens + TPM
  * headroom, not a $ figure (§9).

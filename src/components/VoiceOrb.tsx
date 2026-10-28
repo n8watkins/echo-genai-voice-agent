@@ -36,7 +36,7 @@ export default function VoiceOrb({
     <button
       type="button"
       onClick={onClick}
-      aria-label="Voice orb — tap to talk"
+      aria-label="Voice orb - tap to talk"
       className="relative flex items-center justify-center focus:outline-none focus-visible:ring-4 focus-visible:ring-cyan-400/50 rounded-full"
     >
       {/* Ripple rings while listening */}

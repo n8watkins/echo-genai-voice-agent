@@ -7,7 +7,7 @@ import { SHARED_MODEL } from '@/lib/gemini';
  * Selected text/tool model (localStorage). Mirrors useApiKey: SSR-safe (starts
  * at SHARED_MODEL, hydrates from storage in an effect) and syncs across hook
  * instances via a window event. The chosen id is sent to /api/chat, which
- * re-validates it server-side (allowlist + BYOK gate) — this is just the UI
+ * re-validates it server-side (allowlist + BYOK gate) - this is just the UI
  * preference.
  */
 

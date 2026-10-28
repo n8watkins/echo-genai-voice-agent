@@ -92,7 +92,7 @@ export default function VoicePicker({ speech }: { speech: SpeechApi }) {
         ▶ Preview voice
       </button>
       <p className="text-[11px] text-cyan-200/40 leading-snug">
-        Free browser voices, auto-tuned to your active persona. Quality varies by OS — Chrome and
+        Free browser voices, auto-tuned to your active persona. Quality varies by OS - Chrome and
         recent macOS/Windows ship the nicest neural voices.
       </p>
     </div>

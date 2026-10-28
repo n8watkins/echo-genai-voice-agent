@@ -6,7 +6,7 @@ import { createClient, type Client } from '@libsql/client';
  * Optional, like every other key in this project: if TURSO_DATABASE_URL +
  * TURSO_AUTH_TOKEN aren't set, persistence is simply OFF and Echo runs exactly
  * as before (in-memory transcripts, nothing stored). The auth token stays
- * server-side — only the API routes touch this module.
+ * server-side - only the API routes touch this module.
  *
  * Privacy posture: storage is anonymous and text-only. A per-browser anon id
  * scopes "your" conversations; we persist transcripts (what was said), never

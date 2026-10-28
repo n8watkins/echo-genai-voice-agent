@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 const STORAGE_KEY = 'echo-api-key';
 export const API_KEY_CHANGED_EVENT = 'echo-api-key-changed';
 
-/** Loose validation — Google AI Studio keys start with "AIza" / "AQ.". */
+/** Loose validation - Google AI Studio keys start with "AIza" / "AQ.". */
 export function looksLikeKey(key: string): boolean {
   const k = key.trim();
   return k.length >= 20 && /^[A-Za-z0-9._-]+$/.test(k);

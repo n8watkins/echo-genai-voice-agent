@@ -84,7 +84,7 @@ export async function dispatchTool(
 }
 
 // ---------------------------------------------------------------------------
-// get_current_time — zero network, uses the platform tz database
+// get_current_time - zero network, uses the platform tz database
 // ---------------------------------------------------------------------------
 
 function getCurrentTime(timezone: string): Record<string, unknown> {
@@ -107,7 +107,7 @@ function getCurrentTime(timezone: string): Record<string, unknown> {
 }
 
 // ---------------------------------------------------------------------------
-// get_weather — Open-Meteo geocoding + forecast (free, no key)
+// get_weather - Open-Meteo geocoding + forecast (free, no key)
 // ---------------------------------------------------------------------------
 
 const WEATHER_CODES: Record<number, string> = {
@@ -166,7 +166,7 @@ async function getWeather(location: string): Promise<Record<string, unknown>> {
 }
 
 // ---------------------------------------------------------------------------
-// web_search — Tavily (LLM-oriented search API) if configured, else graceful note
+// web_search - Tavily (LLM-oriented search API) if configured, else graceful note
 // ---------------------------------------------------------------------------
 
 async function webSearch(query: string): Promise<Record<string, unknown>> {

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VoiceHint } from '@/lib/personas';
 
 /**
- * speechSynthesis (TTS) wrapper — the TTS seam.
+ * speechSynthesis (TTS) wrapper - the TTS seam.
  *
  * Provides a sentence queue so the orchestrator can enqueue chunks as the model
  * streams (speak-as-you-stream). Cloud TTS can replace this later behind the
@@ -36,7 +36,7 @@ export function isSpeechSynthesisSupported(): boolean {
 /** Markers that usually indicate a higher-quality / neural voice. */
 const QUALITY_MARKERS = ['natural', 'neural', 'google', 'premium', 'enhanced'];
 
-/** Score a voice for quality — higher is better. */
+/** Score a voice for quality - higher is better. */
 function qualityScore(v: SpeechSynthesisVoice): number {
   let score = 0;
   const name = v.name.toLowerCase();
@@ -113,7 +113,7 @@ export function useSpeech() {
   const [speaking, setSpeaking] = useState(false);
   const [rate, setRate] = useState(1);
   const [pitch, setPitch] = useState(1);
-  // True once the user explicitly overrides the voice — persona hints stop
+  // True once the user explicitly overrides the voice - persona hints stop
   // overriding their choice after that (the override persists across sessions).
   const userOverrodeRef = useRef(false);
 
@@ -199,7 +199,7 @@ export function useSpeech() {
     if (isSpeechSynthesisSupported()) window.speechSynthesis.cancel();
   }, []);
 
-  /** Manual user voice selection — persists and disables hint auto-switching. */
+  /** Manual user voice selection - persists and disables hint auto-switching. */
   const selectVoice = useCallback((uri: string) => {
     userOverrodeRef.current = true;
     setSelectedURI(uri);

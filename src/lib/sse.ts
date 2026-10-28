@@ -1,7 +1,7 @@
 /**
  * Tiny Server-Sent-Events helpers shared by the /api/chat route (encode) and
  * the client orchestrator (decode). We only need one-way (server → client)
- * streaming for the model tokens — an honest contrast to the WebSocket
+ * streaming for the model tokens - an honest contrast to the WebSocket
  * transport used elsewhere in the portfolio.
  */
 

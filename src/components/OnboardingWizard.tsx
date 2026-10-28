@@ -110,8 +110,8 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
                 <p className="text-sm text-cyan-50/90">
                   <span className="font-bold text-white">
                     Echo listens, thinks, and talks back in real time
-                  </span>{' '}
-                  — and you can interrupt it mid-sentence, like a real conversation. Closing that
+                  </span>{' '} -
+                  and you can interrupt it mid-sentence, like a real conversation. Closing that
                   spoken loop is the heart of this project.
                 </p>
               </div>
@@ -141,7 +141,7 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
                   talking.
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-cyan-400">•</span> Talk over Echo to interrupt it — it stops and
+                  <span className="text-cyan-400">•</span> Talk over Echo to interrupt it - it stops and
                   listens.
                 </li>
                 <li className="flex gap-2">
@@ -149,11 +149,11 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
                   and the time in Tokyo?&quot;</em>
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-cyan-400">•</span> No mic? Just type — the text box always works.
+                  <span className="text-cyan-400">•</span> No mic? Just type - the text box always works.
                 </li>
                 <li className="flex gap-2">
-                  <span className="text-cyan-400">•</span> Open the panel to switch <em>personas</em> —
-                  Witty Mentor, Noir Detective, Hype Coach, and more — each with its own voice.
+                  <span className="text-cyan-400">•</span> Open the panel to switch <em>personas</em> -
+                  Witty Mentor, Noir Detective, Hype Coach, and more - each with its own voice.
                 </li>
               </ul>
 
@@ -171,7 +171,7 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
               <div className="text-center">
                 <h2 className="text-white text-3xl font-bold mb-2">You can talk right now</h2>
                 <p className="text-cyan-100/70 text-sm">
-                  No signup, no API key — it runs on a shared free demo key while it has capacity.
+                  No signup, no API key - it runs on a shared free demo key while it has capacity.
                   Speech-to-text and text-to-speech run entirely in your browser.
                 </p>
               </div>
@@ -191,11 +191,11 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
                   Enable microphone
                 </button>
                 {micStatus === 'granted' && (
-                  <p className="text-sm text-emerald-400">Microphone enabled — you&apos;re all set.</p>
+                  <p className="text-sm text-emerald-400">Microphone enabled - you&apos;re all set.</p>
                 )}
                 {micStatus === 'denied' && (
                   <p className="text-sm text-rose-400">
-                    Mic blocked — no problem. You can type your messages instead.
+                    Mic blocked - no problem. You can type your messages instead.
                   </p>
                 )}
                 {!isChrome && (
@@ -215,7 +215,7 @@ export default function OnboardingWizard({ isOpen, onComplete }: OnboardingWizar
                   <span>
                     {hasApiKey
                       ? 'Your own Gemini key is active'
-                      : 'Prefer your own free Gemini key? (optional — unlimited usage)'}
+                      : 'Prefer your own free Gemini key? (optional - unlimited usage)'}
                   </span>
                   <svg
                     className={`w-4 h-4 transition-transform ${showKeyEntry ? 'rotate-180' : ''}`}

@@ -1,4 +1,4 @@
-# Echo — manual QA checklist
+# Echo - manual QA checklist
 
 > Follow-up manual QA for things that **can't be verified headlessly** (build /
 > test / lint already pass). Check items off as you go; note anything broken under
@@ -7,7 +7,7 @@
 >
 > Echo-scoped extract of the original Scout+Echo checklist; Scout's items live in
 > Scout's repo. State (2026-06-20 audit): every feature below is merged on
-> `master` and pushed — but **both Live mode and Classic voice were merged
+> `master` and pushed - but **both Live mode and Classic voice were merged
 > un-QA'd (the user's call), so this checklist is still owed.** Live-mode barge-in
 > is the top item.
 
@@ -16,7 +16,7 @@
 - [ ] Center stage shows a prominent **"Start conversation"** button (not just "tap the orb").
 - [ ] Click Start → browser prompts for **mic permission** → grant.
 - [ ] Talk → Echo replies in **Gemini's native voice** (clearly different/better than the Classic browser TTS).
-- [ ] **Multi-turn:** after it answers, just talk again — no need to re-press anything.
+- [ ] **Multi-turn:** after it answers, just talk again - no need to re-press anything.
 - [ ] **Barge-in (the key fix):** while Echo is *speaking*, start talking → its audio should **cut off immediately** and it should listen to you.
 - [ ] Bottom dock shows a live **token counter**; **Disconnect** stops cleanly.
 - [ ] Switch back to **Classic** → the old pipeline still works.
@@ -26,16 +26,16 @@
 ## Classic voice pipeline ⏳ still pending QA
 - [ ] Mic capture + live transcription works (Chrome).
 - [ ] Persona switcher changes both personality **and** the matched voice.
-- [ ] Hands-free mode doesn't self-interrupt (headphones); barge-in feels right — tune `BARGE_IN_COOLDOWN_MS` / `MIN_BARGE_IN_CHARS` at the top of `src/hooks/useVoiceAgent.ts` if not.
+- [ ] Hands-free mode doesn't self-interrupt (headphones); barge-in feels right - tune `BARGE_IN_COOLDOWN_MS` / `MIN_BARGE_IN_CHARS` at the top of `src/hooks/useVoiceAgent.ts` if not.
 - [ ] Conversation ↔ Push mode toggle works mid-conversation; headset banner persists.
 - [ ] Text input works as a no-mic fallback.
-- [ ] Wake word ("Computer") starts a turn hands-free (needs `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` + the `.pv` model — see README).
+- [ ] Wake word ("Computer") starts a turn hands-free (needs `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` + the `.pv` model - see README).
 
 ## Model picker
 - [ ] On the **shared key** (no BYOK): only **Gemini 3.1 Flash Lite** is selectable; the others show "needs your own key" and are disabled.
 - [ ] Paste your **own Gemini key** (settings/BYOK) → the other models (2.5 Flash, 2.5 Flash Lite, 3 Flash, 3.5 Flash) **unlock**.
 - [ ] Pick a different model with BYOK → responses noticeably differ (verify via the dev panel showing the chosen **model id** per call).
-- [ ] (Sanity) the server falls back to flash-lite if a non-shared model is requested without a key — can't trick the shared key into the expensive models (`pickModel` in `src/lib/gemini.ts`).
+- [ ] (Sanity) the server falls back to flash-lite if a non-shared model is requested without a key - can't trick the shared key into the expensive models (`pickModel` in `src/lib/gemini.ts`).
 
 ## "Under the hood" dev panel
 - [ ] 🔌 CPU-chip toggle (top bar) → do a turn → panel shows the **latency waterfall** (STT → first-token → TTS → turn-total), token/cost, tool calls, turn-state timeline.
@@ -46,17 +46,17 @@
 - [ ] Browser tab shows the **favicon** (Echo cyan "E").
 - [ ] Pasting the (eventual) deploy URL into Slack/iMessage shows the **OG preview card**. (Verify post-deploy; locally check `/opengraph-image` renders.)
 
-## GitHub sign-in + saving conversations (session #3 — needs Render env vars live)
+## GitHub sign-in + saving conversations (session #3 - needs Render env vars live)
 - [ ] **Sign in** (top-right, GitHub) → redirects to GitHub → back signed in (avatar shows). _Needs `AUTH_GITHUB_*` + `AUTH_SECRET` on Render + the **production** OAuth callback `…/api/auth/callback/github`._
 - [ ] Have a conversation (Classic or Live) → it **auto-saves** (a second or two after a turn) and appears in the **left rail** "saved" list.
 - [ ] **Reload the page** → the saved chat is still listed → click it → it loads read-only ("viewing a saved chat" banner) → "back to current" returns.
 - [ ] **Delete** (trash icon) removes it from the list.
 - [ ] **Sign out** → saved list disappears; app still fully works (in-memory). Signed-out users see a "Sign in to save" nudge in the rail.
-- [ ] _If signed-in chats DON'T save: `session.user.id` isn't populating — check the `session` callback in `src/auth.ts`._
+- [ ] _If signed-in chats DON'T save: `session.user.id` isn't populating - check the `session` callback in `src/auth.ts`._
 
-## Live mode — tools + transcript (session #3)
+## Live mode - tools + transcript (session #3)
 - [ ] In Live, ask **"what's the weather in Paris?"** / **"search the web for today's news"** → a tool call fires and Echo **speaks** a grounded answer (web_search needs `TAVILY_API_KEY` live).
-- [ ] The conversation **transcript** (left rail) shows **both** your words and Echo's — confirm **your own speech** is transcribed (input transcription; real mic only).
+- [ ] The conversation **transcript** (left rail) shows **both** your words and Echo's - confirm **your own speech** is transcribed (input transcription; real mic only).
 - [ ] **Type** a message in the Live dock while Echo is talking → it **interrupts** and Echo replies by voice.
 - [ ] A **starter prompt** (before connecting) connects and sends as the opening message.
 

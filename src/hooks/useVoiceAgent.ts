@@ -26,12 +26,12 @@ import { useModel } from './useModel';
  *  recognizer transcribes Echo's voice from the laptop speaker and fires a
  *  false BARGE_IN, cutting Echo off mid-sentence. We mitigate three ways:
  *    1. PAUSE the continuous recognizer the moment Echo starts speaking, and
- *       RESUME it only after a short post-TTS cooldown — so it literally can't
+ *       RESUME it only after a short post-TTS cooldown - so it literally can't
  *       hear most of Echo's own output.
  *    2. A BARGE_IN_COOLDOWN_MS window after speech ends during which interim
  *       results are ignored (catches any trailing audio after resume).
  *    3. A MIN_BARGE_IN_CHARS floor so a stray syllable isn't treated as a real
- *       interrupt — a genuine user interruption produces a longer interim.
+ *       interrupt - a genuine user interruption produces a longer interim.
  *  Genuine barge-in (the user actually talking over Echo) still works because
  *  pause()/resume() can be raced by real speech and the length/cooldown gates
  *  only filter the short, echo-like noise.
@@ -93,10 +93,10 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   // Accumulates the current turn's TraceEvents before they're flushed to the
   // `trace` state. Mutating these never alters voice behavior.
   const traceRef = useRef<TraceEvent[]>([]);
-  // When the user's speech ended (final transcript) — anchors the `stt` stage
+  // When the user's speech ended (final transcript) - anchors the `stt` stage
   // and the `turn-total` headline (speech-end -> first audio out).
   const speechEndAtRef = useRef(0);
-  // When the model request was sent — anchors `model-first-token` timing.
+  // When the model request was sent - anchors `model-first-token` timing.
   const requestSentAtRef = useRef(0);
   // Whether the first model token has been seen this turn (for model-first-token).
   const firstTokenSeenRef = useRef(false);
@@ -164,7 +164,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
   const lastInterimAtRef = useRef(0);
 
   // Shared barge-in / interim handler. With the recognizer paused while Echo
-  // speaks, this rarely sees Echo's own audio — but it still gates on the
+  // speaks, this rarely sees Echo's own audio - but it still gates on the
   // post-TTS cooldown and a minimum interim length so trailing echo can't
   // trigger a false interrupt. A genuine, sustained user utterance clears both
   // gates and cuts Echo off.
@@ -180,7 +180,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
           abortRef.current?.abort();
           dispatch({ type: 'BARGE_IN' });
         } else {
-          // Likely an echo fragment of Echo's own TTS — ignore it entirely.
+          // Likely an echo fragment of Echo's own TTS - ignore it entirely.
           return;
         }
       }
@@ -419,7 +419,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
         setActiveTool(null);
 
         if (!speakingStartedRef.current) {
-          // Nothing speakable was produced — return to a listening/idle state.
+          // Nothing speakable was produced - return to a listening/idle state.
           dispatch({ type: 'SPEECH_END' });
         }
       } catch (err) {
@@ -508,7 +508,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     setMode(!handsFreeRef.current);
   }, [setMode]);
 
-  /** First-class text fallback — works with no mic at all. */
+  /** First-class text fallback - works with no mic at all. */
   const submitText = useCallback(
     (text: string) => {
       const trimmed = text.trim();
@@ -535,7 +535,7 @@ export function useVoiceAgent(options: UseVoiceAgentOptions = {}) {
     error,
     log,
     micSupported,
-    // telemetry (dev panel) — the most-recent turn's trace
+    // telemetry (dev panel) - the most-recent turn's trace
     trace,
     // tts controls/info
     speech,

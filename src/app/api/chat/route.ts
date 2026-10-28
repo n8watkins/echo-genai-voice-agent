@@ -26,7 +26,7 @@ interface ChatBody {
 
 const MAX_TOOL_ROUNDS = 4;
 
-// Server-side input caps — never trust the client's trimming. A turn that
+// Server-side input caps - never trust the client's trimming. A turn that
 // exceeds these is rejected outright rather than silently truncated.
 const MAX_MESSAGE_CHARS = 4000;
 const MAX_HISTORY_TURNS = 24;
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       JSON.stringify({
         error: 'demo_pool_exhausted',
         message:
-          "The shared demo budget for today is used up. Add your own free Gemini key to keep talking — it's unlimited and never draws from the pool.",
+          "The shared demo budget for today is used up. Add your own free Gemini key to keep talking - it's unlimited and never draws from the pool.",
       }),
       { status: 429, headers: { 'Content-Type': 'application/json' } }
     );
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
           round += 1;
 
           // Count the call BEFORE awaiting the stream so an error/abort mid-
-          // stream still counts — the model was hit either way. One chat turn
+          // stream still counts - the model was hit either way. One chat turn
           // can fire up to MAX_TOOL_ROUNDS of these against the demo key.
           recordModelCall(resolved.source);
 
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
 
           const pendingCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
           // Collect the model's parts verbatim from the stream so we preserve
-          // Gemini 3's `thoughtSignature` on functionCall parts — without it,
+          // Gemini 3's `thoughtSignature` on functionCall parts - without it,
           // sending the call back for the tool-result round is rejected (400).
           const modelParts: Part[] = [];
           // Telemetry only: token counts arrive on the stream's final chunk's
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
           );
 
           if (pendingCalls.length === 0) {
-            // Plain answer, no tools — we're done.
+            // Plain answer, no tools - we're done.
             break;
           }
 
@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
             );
           }
           contents.push({ role: 'user', parts: responseParts });
-          // loop again — model continues with tool results
+          // loop again - model continues with tool results
         }
 
         send(encodeSSE({ type: 'done' }));

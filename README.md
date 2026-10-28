@@ -1,13 +1,13 @@
-# Echo — a realtime GenAI voice agent
+# Echo - a realtime GenAI voice agent
 
-> **Talk to an AI and it talks back — in real time, interruptible, with tools.**
+> **Talk to an AI and it talks back - in real time, interruptible, with tools.**
 > Say *"what's the weather in Paris and the time in Tokyo?"* out loud and hear the
 > answer streaming back while you cut Echo off mid-sentence to change the subject.
 
 Echo is a browser-based **realtime conversational voice AI** agent: full-duplex
 speech in, streamed speech out, function-calling tools in the middle, and a
 turn-taking state machine that decides whose turn it is. It's a portfolio project
-about the part of voice AI that *isn't* the model — the **~800 milliseconds** of
+about the part of voice AI that *isn't* the model - the **~800 milliseconds** of
 perceived latency and the **barge-in turn-taking** that separate something that
 feels *alive* from a 1970s answering machine.
 
@@ -16,7 +16,7 @@ speech-to-text (STT), text-to-speech (TTS), LLM streaming, Server-Sent Events,
 function calling / tool use, barge-in, turn-taking, low-latency voice, Web Speech
 API, Google Gemini.
 
-> **🔗 Live demo:** **<https://echo-kzw1.onrender.com>** — or run it locally in
+> **🔗 Live demo:** **<https://echo-kzw1.onrender.com>** - or run it locally in
 > ~30 seconds; see [Run it locally](#run-it-locally). No API key required.
 > (Free Render instance: the first hit after idle may cold-start for ~1 min.)
 
@@ -27,41 +27,41 @@ the hard part.** The long version is in the blog posts below.
 
 ## What it does
 
-- 🎙️ **Real-time voice** — speak naturally, hear a reply in about a second.
-- 🧠 **Streams + tools** — Gemini answers token-by-token and can call **weather**,
+- 🎙️ **Real-time voice** - speak naturally, hear a reply in about a second.
+- 🧠 **Streams + tools** - Gemini answers token-by-token and can call **weather**,
   **time-zone**, and **web-search** tools mid-conversation.
-- 🔊 **Speaks as it thinks** — a sentence chunker starts text-to-speech on the
+- 🔊 **Speaks as it thinks** - a sentence chunker starts text-to-speech on the
   *first* sentence instead of waiting for the whole reply. This is the single
   biggest perceived-latency win.
-- ↩️ **Hands-free + barge-in (default)** — Echo listens continuously and you can
+- ↩️ **Hands-free + barge-in (default)** - Echo listens continuously and you can
   talk over it to cut it off. Headphones recommended (see
   [What's hard about this](#whats-hard-about-this-the-honest-part)); push-to-talk
   is a one-click alternative mode.
-- ⌨️ **First-class text fallback** — no mic, locked-down machine, Firefox or iOS?
+- ⌨️ **First-class text fallback** - no mic, locked-down machine, Firefox or iOS?
   The typed demo always works. Voice is an enhancement over a working text core.
-- 🎭 **6 personas** — Witty Mentor, Noir Detective, Hype Coach, Calm Guide,
+- 🎭 **6 personas** - Witty Mentor, Noir Detective, Hype Coach, Calm Guide,
   Storyteller, and more. Each swaps the system prompt, auto-picks a matching
   browser voice, and shows its own starter prompts.
-- 🗣️ **Wake word (optional, on-device)** — say *"Computer"* to start a turn
+- 🗣️ **Wake word (optional, on-device)** - say *"Computer"* to start a turn
   hands-free, detected locally with Picovoice Porcupine. Off by default; opt-in
   via env key.
-- 🔀 **Two voice engines, one toggle** — **Classic** (the default, hand-built
+- 🔀 **Two voice engines, one toggle** - **Classic** (the default, hand-built
   pipeline above) or **Live**: Gemini's native Live API. Live connects the
   browser *directly* to Gemini over a WebSocket for native PCM speech-to-speech
   with server-side VAD and barge-in. See
   [Classic vs. Live](#classic-vs-live-two-voice-engines).
-- 🔬 **"Under the hood" dev panel** — a CPU-chip toggle opens a live **latency
+- 🔬 **"Under the hood" dev panel** - a CPU-chip toggle opens a live **latency
   waterfall** (STT → model first-token → per-sentence TTS → turn-total), plus
   tokens, tool calls, and the turn-state timeline. The 800ms budget made
-  literal — and it runs for *both* engines.
-- 🎚️ **Model picker** — swap the text/tool model from Settings. The shared demo
+  literal - and it runs for *both* engines.
+- 🎚️ **Model picker** - swap the text/tool model from Settings. The shared demo
   key runs `gemini-3.1-flash-lite`; 2.5 / 3 / 3.5 Flash variants unlock with
   your own key.
 
 ## Why it's interesting
 
 Most "AI voice" demos are one-shot dictation or text chat with a speaker bolted
-on. Echo closes the **whole spoken loop** — mic → transcribe → think → speak — and
+on. Echo closes the **whole spoken loop** - mic → transcribe → think → speak - and
 lets a human *interrupt* it, which is the thing that actually makes a conversation
 feel human. Everything hard about voice AI lives in that loop: the latency budget,
 the turn-taking, and the physical fact that a laptop mic can hear the laptop
@@ -71,12 +71,12 @@ speaker. None of it is the LLM. That's the whole point of the project.
 
 Echo ships **two voice engines** behind a Classic | Live toggle. **Classic** (the
 default) is the hand-built pipeline below: voice runs **entirely in the browser**
-and the only server round-trip is the model's text, streamed back over **SSE** — so
+and the only server round-trip is the model's text, streamed back over **SSE** - so
 the transport is one-directional and simple, an honest contrast to the WebSockets I
 used in my [gemini-chat-app](../gemini-chat-app). **Live** is Gemini's native Live
 API and inverts that (see [Classic vs. Live](#classic-vs-live-two-voice-engines)).
 
-### The pipeline (STT → SSE → chunker → TTS) — Classic engine
+### The pipeline (STT → SSE → chunker → TTS) - Classic engine
 
 ```mermaid
 flowchart LR
@@ -91,7 +91,7 @@ flowchart LR
     style G fill:#be123c,color:#fff
 ```
 
-- **STT & TTS run in the browser** via the Web Speech API — free, no key, and the
+- **STT & TTS run in the browser** via the Web Speech API - free, no key, and the
   speech never leaves your machine. They live behind hooks
   (`useSpeechRecognition`, `useSpeech`) so a cloud STT/TTS can drop in later.
 - **The server only streams the model.** `src/app/api/chat/route.ts` proxies
@@ -103,7 +103,7 @@ flowchart LR
 ### Turn-taking as an explicit state machine
 
 Turn-taking is a pure reducer (`src/lib/conversation/turnMachine.ts`), not a pile
-of booleans. Out-of-order async callbacks — and voice has *many* — become no-ops
+of booleans. Out-of-order async callbacks - and voice has *many* - become no-ops
 instead of bugs.
 
 ```mermaid
@@ -140,7 +140,7 @@ Live (`src/hooks/useLiveSession.ts`, `src/lib/live.ts`) never gets the raw API
 key: the server mints a **single-use ephemeral token** (`/api/live-token`,
 `ai.authTokens.create`) scoped to the Live model + AUDIO modality, and the browser
 passes that token to `ai.live.connect`. Switching to Live does **not** open a
-socket — you click **Connect** explicitly, so the shared quota is never spent on a
+socket - you click **Connect** explicitly, so the shared quota is never spent on a
 page load. Live runs on the demo key only for now (BYOK-for-Live is a later
 concern), and because audio-token pricing is unconfirmed, the dev panel reports
 Live in **tokens, not dollars**. The why-this-way reflection is in
@@ -155,7 +155,7 @@ Echo's tools are plain function declarations dispatched in the chat route
 |---|---|---|
 | `get_current_time` | Current time for a given time zone | No |
 | `get_weather` | Current weather via **Open-Meteo** | No (keyless API) |
-| `web_search` | Quick web lookup via Tavily (LLM-oriented search API) | Optional — degrades to model knowledge without a key |
+| `web_search` | Quick web lookup via Tavily (LLM-oriented search API) | Optional - degrades to model knowledge without a key |
 
 ## Tech stack
 
@@ -164,7 +164,7 @@ Echo's tools are plain function declarations dispatched in the chat route
 the Live engine) · Web Speech API · Server-Sent Events · WebSocket (Live).**
 
 > **SDK note:** Echo uses the current **`@google/genai`** SDK, not the legacy
-> `@google/generative-ai` used by the older gemini-chat-app — cleaner streaming and
+> `@google/generative-ai` used by the older gemini-chat-app - cleaner streaming and
 > function calling. One Gemini 3 wrinkle: when you send a `functionCall` back for
 > the tool-result round, you must preserve its `thoughtSignature` part verbatim or
 > the API rejects it (400). Echo collects the model's parts straight from the
@@ -189,10 +189,10 @@ typed input works everywhere.
 |---|---|
 | `GEMINI_API_KEY` | Server demo-key fallback (optional; BYOK preferred). |
 | `ECHO_MODEL` | Default text/tool model id (the in-app model picker can override per session; BYOK models are server-validated). Defaults to `gemini-3.1-flash-lite`. |
-| `TAVILY_API_KEY` | Optional — enables the `web_search` tool via Tavily (free key at [app.tavily.com](https://app.tavily.com)). Without it, Echo answers from its own knowledge. |
-| `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional — enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
-| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Optional — saving conversations ([Turso](https://turso.tech)/libSQL). Absent → conversations are in-memory only. |
-| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` / `AUTH_SECRET` | Optional — GitHub sign-in (Auth.js) that gates saving. Absent → sign-in is hidden. |
+| `TAVILY_API_KEY` | Optional - enables the `web_search` tool via Tavily (free key at [app.tavily.com](https://app.tavily.com)). Without it, Echo answers from its own knowledge. |
+| `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` | Optional - enables the on-device wake-word toggle. Free key from [Picovoice Console](https://console.picovoice.ai/). Absent → toggle is disabled with a hint. |
+| `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` | Optional - saving conversations ([Turso](https://turso.tech)/libSQL). Absent → conversations are in-memory only. |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` / `AUTH_SECRET` | Optional - GitHub sign-in (Auth.js) that gates saving. Absent → sign-in is hidden. |
 | `NEXT_PUBLIC_APP_URL`, `PORT` | App URL / port (3200). |
 
 ### Wake word (optional, on-device)
@@ -202,7 +202,7 @@ With `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` set, a **Wake word** toggle appears.
 the browser) for the built-in keyword **"Computer"** and starts a listening turn
 on detection. The modules are lazy-loaded only when the toggle is on, so they
 never affect the build otherwise. The ~1MB acoustic model
-(`public/models/porcupine_params.pv`) is **gitignored** — fetch it only if you
+(`public/models/porcupine_params.pv`) is **gitignored** - fetch it only if you
 enable the feature:
 
 ```bash
@@ -218,16 +218,16 @@ background listening), Chrome/Edge + mic permission required.
 
 Two of Echo's three tools (`get_current_time`, `get_weather`) are keyless and work
 out of the box. The third, `web_search`, does a **live web lookup via
-[Tavily](https://app.tavily.com)** — a search API built for LLMs that returns clean
+[Tavily](https://app.tavily.com)** - a search API built for LLMs that returns clean
 extracted content plus a synthesized answer. It's **off until you add a key**:
 
 ```bash
-# .env.local — or set it in your host's env (e.g. Render → Environment)
+# .env.local - or set it in your host's env (e.g. Render → Environment)
 TAVILY_API_KEY=tvly-...
 ```
 
 Grab a free key at [app.tavily.com](https://app.tavily.com) (~1,000 searches/month, no
-card). Without it, `web_search` degrades gracefully — Echo answers from the model's own
+card). Without it, `web_search` degrades gracefully - Echo answers from the model's own
 knowledge and says it couldn't search the live web. The tool *declaration* is
 provider-agnostic, so swapping Tavily for another search backend is a change to a single
 function in `src/lib/conversation/tools.ts`.
@@ -239,11 +239,11 @@ meter, plus a **"bring your own free Gemini key"** expander for unlimited use.
 STT/TTS need no key at all, which makes the zero-setup demo even smoother.
 
 The shared demo key is **hard-capped at 250 model calls per rolling 24h** (a single
-chat turn can fire several calls when it uses tools, and every actual call counts —
+chat turn can fire several calls when it uses tools, and every actual call counts -
 even ones that error). **BYOK requests bypass the cap entirely**, and the key is
 stored only in your browser's `localStorage`, never sent anywhere but Echo's own
 API. The counter is **in-memory / per-process** (it resets on a Render free-tier
-cold start) — a best-effort soft guard, not a durable global ceiling. A durable
+cold start) - a best-effort soft guard, not a durable global ceiling. A durable
 cross-process cap would live in an external KV like Upstash Redis; intentionally
 not added here.
 
@@ -254,11 +254,11 @@ Voice AI is a latency-and-physics problem wearing an AI costume. The hard parts:
 - **The 800ms latency budget.** A human conversational turn gap is ~200ms, and a
   voice agent starts feeling broken past ~800ms–1.5s. The naive "wait for the full
   reply, then speak" approach burns 3–4 seconds of dead air per turn. Echo's fix is
-  structural — overlap the stages with the sentence chunker — not "buy a faster
+  structural - overlap the stages with the sentence chunker - not "buy a faster
   model." The deep dive: [The 800ms Problem](docs/blog/the-800ms-problem.md).
 - **The mic hears Echo's own TTS.** While `speechSynthesis` plays through the
   speakers, the mic can transcribe Echo talking to itself and fire a false
-  interrupt — an echo loop, literally. The Web Speech API doesn't expose the raw
+  interrupt - an echo loop, literally. The Web Speech API doesn't expose the raw
   mic stream, so you *cannot* apply echo cancellation. Echo mitigates this by
   **pausing the recognizer while it speaks**, adding a **post-TTS cooldown**, and
   requiring a **minimum interim length** before honoring barge-in. **Headphones are
@@ -266,7 +266,7 @@ Voice AI is a latency-and-physics problem wearing an AI costume. The hard parts:
   tapping the mic) still works, and **push-to-talk is the alternative mode**.
 - **Browser support is narrow.** The Web Speech API is **Chrome/Edge-only** and
   effectively unsupported on iOS Safari. That's why the typed input is first-class,
-  not a courtesy — a reviewer on Firefox or an iPhone still gets a working demo.
+  not a courtesy - a reviewer on Firefox or an iPhone still gets a working demo.
 - **Local TTS voices are robotic.** Echo auto-selects the best available local
   voice (it scores `speechSynthesis` voices, preferring neural/online ones); a
   higher-quality cloud TTS is the planned upgrade, and the seam is already in
@@ -276,14 +276,14 @@ Voice AI is a latency-and-physics problem wearing an AI costume. The hard parts:
 
 Three write-ups, close-up to wide-angle:
 
-1. **[The 800ms Problem](docs/blog/the-800ms-problem.md)** — the latency build-log:
+1. **[The 800ms Problem](docs/blog/the-800ms-problem.md)** - the latency build-log:
    the pipeline, speak-as-you-stream, the state machine, barge-in, and the echo
    loop.
-2. **[The model was the easy part](docs/blog/lessons-and-the-near-future-of-voice.md)**
-   — a reflection on the lessons and the tech-choice trade-offs, including why I
+2. **[The model was the easy part](docs/blog/lessons-and-the-near-future-of-voice.md)** -
+   a reflection on the lessons and the tech-choice trade-offs, including why I
    built the pipeline by hand *and then* added the managed Live API beside it, and
    what the latency waterfall taught me about observability.
-3. **[The state of voice AI](docs/blog/the-state-of-voice-ai.md)** — the wide-angle
+3. **[The state of voice AI](docs/blog/the-state-of-voice-ai.md)** - the wide-angle
    market analysis: the shift to native speech-to-speech, latency as the product,
    cloud vs. on-device, who's building it (OpenAI Realtime, Gemini Live,
    ElevenLabs), and an engineer's take, grounded in 2025–2026 sources.
@@ -291,22 +291,22 @@ Three write-ups, close-up to wide-angle:
 ## Deploying (Render free tier)
 
 A ready-to-use **Render Blueprint** lives at [`render.yaml`](render.yaml): in the
-dashboard pick **New + → Blueprint**, point it at this repo, and Apply — it sets the
+dashboard pick **New + → Blueprint**, point it at this repo, and Apply - it sets the
 build/start commands, health check, and env-var stubs below for you. Or configure a
 Web Service by hand:
 
 - **Build:** `npm install && npm run build`
-- **Start:** `npx next start -p $PORT` — Render injects `$PORT`; the script's local
+- **Start:** `npx next start -p $PORT` - Render injects `$PORT`; the script's local
   `next start -p 3200` hardcodes 3200, so on Render bind to `$PORT` instead.
 - **Health check path:** `/api/healthz` (also the URL to point an uptime pinger at).
 - Set `GEMINI_API_KEY` in the Render dashboard (never commit it).
-- Free instances spin down after ~15 min idle and cold-start in ~1 min — fine for a
+- Free instances spin down after ~15 min idle and cold-start in ~1 min - fine for a
   portfolio demo. The free tier shares **750 instance-hours/month per workspace**, so
   keeping several services warm 24/7 exhausts it; keep one warm (e.g. an UptimeRobot
   HTTP monitor hitting `/api/healthz` every 5 min) and let the rest cold-start, or
   upgrade the always-on ones to a paid instance. Transcripts are in-memory by
   default; configure Turso + GitHub sign-in (see [Environment](#environment)) to
-  let signed-in users save and revisit their chats — text only, never audio.
+  let signed-in users save and revisit their chats - text only, never audio.
 - Because STT/TTS are browser-side, there's no audio infrastructure to provision;
   the server only proxies the model stream.
 

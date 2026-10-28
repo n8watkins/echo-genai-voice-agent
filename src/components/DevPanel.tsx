@@ -11,7 +11,7 @@ import { type TraceEvent, hasPricing } from '@/lib/devtrace';
  * as (a) a latency waterfall with the turn-total headline, (b) the turn-state
  * timeline, (c) per-call tokens + estimated $, (d) tool calls, and (e) raw
  * prompt/response/tool I/O behind accordions (default collapsed, §9). It never
- * drives the voice pipeline — it only reads what useVoiceAgent recorded.
+ * drives the voice pipeline - it only reads what useVoiceAgent recorded.
  */
 
 // Color per stage label / event kind for the waterfall bars.
@@ -129,7 +129,7 @@ export default function DevPanel({
           <p className="text-sm font-medium text-cyan-100/80">No turn captured yet</p>
           <p className="max-w-xs text-xs text-cyan-200/50">
             Say something or send a message. This panel will trace the live
-            pipeline — STT, first token, the model call (tokens + estimated
+            pipeline - STT, first token, the model call (tokens + estimated
             cost), any tool calls, and where the milliseconds go.
           </p>
         </div>

@@ -2,11 +2,11 @@ import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 
 /**
- * Auth.js (NextAuth v5) — GitHub sign-in.
+ * Auth.js (NextAuth v5) - GitHub sign-in.
  *
  * Optional like everything else here: if AUTH_GITHUB_ID / AUTH_GITHUB_SECRET
  * aren't set, the provider list is empty and Echo runs signed-out (in-memory,
- * no persistence). Auth only gates "save my conversations" — it's never
+ * no persistence). Auth only gates "save my conversations" - it's never
  * required to use the app.
  *
  * `trustHost` is on because we deploy behind Render's proxy (a non-Vercel

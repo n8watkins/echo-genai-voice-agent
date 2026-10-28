@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * Web Speech API (SpeechRecognition) wrapper — the STT seam.
+ * Web Speech API (SpeechRecognition) wrapper - the STT seam.
  *
  * Abstracted so a cloud STT can drop in later: callers only see start/stop and
  * interim/final callbacks, never the browser API directly. Feature-detects on
@@ -104,7 +104,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
       rec.start();
       setListening(true);
     } catch {
-      // start() throws if already running — ignore.
+      // start() throws if already running - ignore.
     }
   }, [ensureRecognizer]);
 
@@ -134,7 +134,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
       rec.start();
       setListening(true);
     } catch {
-      // already running — ignore.
+      // already running - ignore.
     }
   }, [ensureRecognizer]);
 

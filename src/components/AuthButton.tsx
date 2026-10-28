@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { getProviders, signIn, signOut, useSession } from 'next-auth/react';
 
 /**
- * GitHub sign-in / signed-in avatar + sign-out. Signing in is optional — it
+ * GitHub sign-in / signed-in avatar + sign-out. Signing in is optional - it
  * only unlocks saving conversations; signed-out, Echo works fully in-memory.
  * Renders nothing when sign-in isn't configured (no GitHub provider), so a
  * deploy without AUTH_GITHUB_* never shows a dead button.

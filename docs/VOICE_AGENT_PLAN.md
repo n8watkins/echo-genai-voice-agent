@@ -1,9 +1,9 @@
-# Echo — Realtime Voice Agent · One-Shot Build Plan
+# Echo - Realtime Voice Agent · One-Shot Build Plan
 
 > **⚠️ Historical build plan (session #1).** Kept as a record of original intent;
 > where it diverged from what shipped, current truth lives in `HANDOFF.md` +
 > `README.md`. Notable evolutions: **SDK** is `@google/genai` (not the
-> `@google/generative-ai` named in §3 — §12a already corrects this); **web search**
+> `@google/generative-ai` named in §3 - §12a already corrects this); **web search**
 > uses **Tavily** (`TAVILY_API_KEY`), not Google Programmable Search (§11);
 > **persistence** is moving to **Turso/libSQL**, not the `better-sqlite3` +
 > `api/conversations` route sketched in §5/§13.
@@ -17,7 +17,7 @@
 
 ## 1. The pitch (one sentence)
 
-Talk to an AI and it talks back — **in real time, interruptible, with tools** — so a spoken question like "what's the weather and what time is it in Tokyo?" gets answered out loud while you can cut it off mid-sentence and change the subject.
+Talk to an AI and it talks back - **in real time, interruptible, with tools** - so a spoken question like "what's the weather and what time is it in Tokyo?" gets answered out loud while you can cut it off mid-sentence and change the subject.
 
 ## 2. The thesis the project exists to prove (this is the blog post)
 
@@ -29,14 +29,14 @@ Blog beats to design the build around (see §10):
 - The pipeline and where the milliseconds hide: STT → LLM → TTS.
 - **Speak as you stream:** chunk the LLM token stream into sentences and start TTS on sentence 1 instead of waiting for the full reply. This is the single biggest perceived-latency win.
 - **Barge-in:** detect the user talking over the AI, cancel `speechSynthesis`, and yield the turn. Turn-taking is a state machine, not an afterthought.
-- Why browser **Web Speech API** for STT+TTS (free, zero-key, frictionless demo) — and its honest limits (Chrome-only quirks, accent handling, no server control).
+- Why browser **Web Speech API** for STT+TTS (free, zero-key, frictionless demo) - and its honest limits (Chrome-only quirks, accent handling, no server control).
 
 ## 3. Stack (match the house stack)
 
 - **Next.js 16** (App Router) + **React 19** + **TypeScript** + **Tailwind v4** (same `globals.css` pattern as gemini-chat-app).
-- **STT:** browser **Web Speech API** `SpeechRecognition` (interim + final results) — same API net-trailers already used for voice search, so it's a proven, free, no-key choice. Abstract it behind `useSpeechRecognition` so a cloud STT can drop in later.
+- **STT:** browser **Web Speech API** `SpeechRecognition` (interim + final results) - same API net-trailers already used for voice search, so it's a proven, free, no-key choice. Abstract it behind `useSpeechRecognition` so a cloud STT can drop in later.
 - **LLM:** **@google/generative-ai**, `gemini-3.1-flash-lite`, **streaming** responses + **function calling**.
-- **TTS:** browser **Web Speech API** `speechSynthesis` (free, no key), with a voice picker. Abstracted behind `useSpeech` so cloud TTS (e.g. higher-quality neural voices) is a later upgrade — mention this in the blog as the obvious next step.
+- **TTS:** browser **Web Speech API** `speechSynthesis` (free, no key), with a voice picker. Abstracted behind `useSpeech` so cloud TTS (e.g. higher-quality neural voices) is a later upgrade - mention this in the blog as the obvious next step.
 - **Transport:** **SSE** for the LLM token stream (server → client). STT and TTS run *in the browser*, so the only server round-trip is the model; SSE keeps it simple and is an honest contrast to gemini's WebSockets (blog can note "I reached for WebSockets last time; this time the data only flows one way").
 - **Heroicons** + **lucide-react** (match house icons).
 - **better-sqlite3** (optional) to persist conversation transcripts, mirroring gemini's persistence; fine to run ephemeral on free tier.
@@ -44,7 +44,7 @@ Blog beats to design the build around (see §10):
 
 ## 4. BYOK + demo-key pattern (copy gemini-chat-app)
 
-Same as the rest of the portfolio: instant use on a **shared demo key** with a **usage meter**, plus a **"bring your own Gemini key"** expander for unlimited use. STT/TTS need no keys (browser-native), which makes the zero-setup demo even smoother — call that out.
+Same as the rest of the portfolio: instant use on a **shared demo key** with a **usage meter**, plus a **"bring your own Gemini key"** expander for unlimited use. STT/TTS need no keys (browser-native), which makes the zero-setup demo even smoother - call that out.
 
 ## 5. Directory layout
 
@@ -116,54 +116,54 @@ any ──(mic off)──▶ idle
 
 ## 7. Speak-as-you-stream (`sentenceChunker.ts`)
 
-The perceived-latency win. Buffer incoming tokens; flush a chunk to TTS when you hit sentence-ending punctuation (`.`/`!`/`?`/newline) or a max length. Strip markdown/emoji (TTS reads them literally). Result: the AI starts talking ~1 sentence after the model starts, instead of after the whole response — turning a 3-second wait into ~800ms.
+The perceived-latency win. Buffer incoming tokens; flush a chunk to TTS when you hit sentence-ending punctuation (`.`/`!`/`?`/newline) or a max length. Strip markdown/emoji (TTS reads them literally). Result: the AI starts talking ~1 sentence after the model starts, instead of after the whole response - turning a 3-second wait into ~800ms.
 
-## 8. The intro modal — REQUIRED, must match house style
+## 8. The intro modal - REQUIRED, must match house style
 
 Same requirement as every portfolio app: a first-run wizard that **explains the project** and looks like the others (gemini's `OnboardingWizard.tsx`/`AboutContent.tsx`, net-trailers' `TutorialModal.tsx` are the templates). Echo's wizard has an **extra third step for microphone permission**, which is a natural fit.
 
-**`OnboardingWizard.tsx`** — three steps (`About` → `How to talk to it` → `Enable mic`):
+**`OnboardingWizard.tsx`** - three steps (`About` → `How to talk to it` → `Enable mic`):
 - Backdrop + panel identical structure to gemini's (`rounded-2xl max-w-5xl backdrop-blur-md z-[50000]`), shadow recolored **cyan** (`shadow-cyan-500/20`). Step pills + skip `XMarkIcon` exactly like gemini.
-- **Step 1 (About):** a cyan thesis callout with a `SparklesIcon` / mic icon — *"Echo listens, thinks, and talks back in real time — and you can interrupt it mid-sentence, like a real conversation. Closing that spoken loop is the heart of this project."* — then `<AboutContent />`.
+- **Step 1 (About):** a cyan thesis callout with a `SparklesIcon` / mic icon - *"Echo listens, thinks, and talks back in real time - and you can interrupt it mid-sentence, like a real conversation. Closing that spoken loop is the heart of this project."* - then `<AboutContent />`.
 - **Step 2 (How to talk to it):** a 3-node pipeline mini-diagram (🎙️ You speak → 🧠 Gemini thinks → 🔊 Echo speaks) + tips: "tap the orb to start, talk over it to interrupt, try 'what's the weather in Paris and the time in Tokyo?'"
 - **Step 3 (Enable mic):** demo-pool `UsageMeter`, collapsible BYOK `InlineKeyEntry`, and a **"Enable microphone"** button that triggers the `getUserMedia`/SpeechRecognition permission prompt. Gracefully handle denial (fall back to a text input box so the demo still works).
 - Footer: gradient cyan/teal Skip / Next / Back / **`Start talking →`** buttons.
 
-**`AboutContent.tsx`** — mirror gemini's structure precisely:
+**`AboutContent.tsx`** - mirror gemini's structure precisely:
 - Centered `Welcome to Echo` title.
 - Cyan gradient intro card with the **same portrait + bio + social links row** (GitHub / LinkedIn / X / Portfolio) as the other apps.
 - **🌟 Key Features** icon-card grid:
-  - `MicrophoneIcon` — **Real-time voice** ("speak naturally, hear a reply in ~1 second").
-  - `ArrowUturnLeftIcon` / hand icon — **Interrupt anytime** ("talk over Echo and it stops and listens — true barge-in").
-  - `BoltIcon` — **Speaks as it thinks** ("starts talking on the first sentence, not the last").
-  - `WrenchScrewdriverIcon` — **Voice tools** ("ask for weather, time zones, or a quick web lookup mid-conversation").
-  - `KeyIcon` — **Free to try, BYOK optional** (no key needed — STT/TTS run in your browser).
-  - `CodeBracketIcon` — **Open source on GitHub**.
-- **⚡ Under the hood** 3-col block (Latency / Turn-taking / Privacy) with `✓` bullets — e.g. "Sentence-level streaming TTS", "Barge-in cancel", "State-machine turn-taking", "Speech never leaves your browser for STT/TTS".
+  - `MicrophoneIcon` - **Real-time voice** ("speak naturally, hear a reply in ~1 second").
+  - `ArrowUturnLeftIcon` / hand icon - **Interrupt anytime** ("talk over Echo and it stops and listens - true barge-in").
+  - `BoltIcon` - **Speaks as it thinks** ("starts talking on the first sentence, not the last").
+  - `WrenchScrewdriverIcon` - **Voice tools** ("ask for weather, time zones, or a quick web lookup mid-conversation").
+  - `KeyIcon` - **Free to try, BYOK optional** (no key needed - STT/TTS run in your browser).
+  - `CodeBracketIcon` - **Open source on GitHub**.
+- **⚡ Under the hood** 3-col block (Latency / Turn-taking / Privacy) with `✓` bullets - e.g. "Sentence-level streaming TTS", "Barge-in cancel", "State-machine turn-taking", "Speech never leaves your browser for STT/TTS".
 - **🛠️ Tech Stack** pill row in gemini's exact pill style: TypeScript · Next.js 16 · React 19 · Tailwind CSS · Gemini AI · Web Speech API · SSE.
 - Reuse the **"Portfolio project showcasing:"** footer idiom.
 
 Wire `useOnboarding.ts` (localStorage `echo_onboarding_complete`).
 
-## 9. Main UI (`page.tsx`) — "the stage"
+## 9. Main UI (`page.tsx`) - "the stage"
 
 Dark, centered, theatrical (Echo leans dark like net-trailers, cyan glow):
-- **Center:** `VoiceOrb` — an animated blob/waveform that visually reflects state: gentle pulse (idle), reactive ripples scaled to mic volume (listening), shimmer (thinking), mouth-like pulse synced to TTS (speaking). This is the emotional centerpiece; make it genuinely nice (CSS/Canvas).
+- **Center:** `VoiceOrb` - an animated blob/waveform that visually reflects state: gentle pulse (idle), reactive ripples scaled to mic volume (listening), shimmer (thinking), mouth-like pulse synced to TTS (speaking). This is the emotional centerpiece; make it genuinely nice (CSS/Canvas).
 - **Under the orb:** `StatusPill` ("Listening… / Thinking… / Speaking…") + `LiveCaptions` (big interim transcript, like accessibility captions).
 - **Bottom:** `MicButton` (rose when live) + `VoicePicker` + text-fallback input (for denied mic / accessibility).
 - **Side panel (collapsible):** `ConversationLog` scrollback, BYOK, About re-open, `UsageMeter`.
-- **Accessibility:** captions + text input mean the demo works even with no mic — important for portfolio reviewers on locked-down machines.
+- **Accessibility:** captions + text input mean the demo works even with no mic - important for portfolio reviewers on locked-down machines.
 
 ## 10. Blog post (`docs/blog/the-800ms-problem.md`)
 
 Match gemini-chat-app's voice (first-person, self-deprecating, a mermaid diagram, memes). Outline:
 1. **Hook:** "I got Gemini talking out loud in an afternoon. Making it not feel like a 1970s answering machine took two weeks."
 2. **The pipeline:** mermaid diagram STT → LLM → TTS, with the latency cost annotated on each hop.
-3. **The fix that mattered most:** speak-as-you-stream — chunk tokens into sentences, start TTS on sentence 1. Before/after timing.
+3. **The fix that mattered most:** speak-as-you-stream - chunk tokens into sentences, start TTS on sentence 1. Before/after timing.
 4. **Turn-taking is a state machine:** the walkie-talkie problem; the explicit state diagram; why booleans weren't enough.
-5. **Barge-in:** letting a human interrupt — detecting it and canceling `speechSynthesis` cleanly.
+5. **Barge-in:** letting a human interrupt - detecting it and canceling `speechSynthesis` cleanly.
 6. **Why browser Web Speech API (and where it bites):** free and instant, but Chrome-flavored and quirky; the abstraction seam for swapping in cloud STT/TTS later.
-7. **Why SSE this time, not WebSockets:** the data only flows one way — knowing when *not* to use the heavier tool I used last project.
+7. **Why SSE this time, not WebSockets:** the data only flows one way - knowing when *not* to use the heavier tool I used last project.
 8. **What it taught me about AI UX:** latency *is* the product; the uncanny line between "responsive" and "alive."
 
 ## 11. Env (`.env.example`)
@@ -175,7 +175,7 @@ GOOGLE_SEARCH_ENGINE_ID=
 NEXT_PUBLIC_APP_URL=http://localhost:3200
 PORT=3200
 ```
-(STT/TTS need no keys — they run in the browser.)
+(STT/TTS need no keys - they run in the browser.)
 
 ## 12. Run config (concurrency-safe)
 
@@ -191,20 +191,20 @@ PORT=3200
 
 These override anything above where they conflict.
 
-- **Barge-in is the hard part — default to push-to-talk.** While `speechSynthesis` plays through the speakers, the mic hears the AI's own voice and `SpeechRecognition` transcribes *it*, causing false interrupts / echo loops. Web Speech API doesn't expose the raw mic stream, so you can't apply echo cancellation to it. Therefore: **push-to-talk (tap-to-talk) is the reliable default turn mode**; "hands-free + barge-in" is a clearly-labeled *best-effort* toggle. Don't let continuous-listen be the only path. (This limitation is a featured chapter in the blog, not a bug to hide.)
+- **Barge-in is the hard part - default to push-to-talk.** While `speechSynthesis` plays through the speakers, the mic hears the AI's own voice and `SpeechRecognition` transcribes *it*, causing false interrupts / echo loops. Web Speech API doesn't expose the raw mic stream, so you can't apply echo cancellation to it. Therefore: **push-to-talk (tap-to-talk) is the reliable default turn mode**; "hands-free + barge-in" is a clearly-labeled *best-effort* toggle. Don't let continuous-listen be the only path. (This limitation is a featured chapter in the blog, not a bug to hide.)
 - **Web Speech API is Chrome/Edge-only; iOS Safari effectively unsupported** and gates audio behind a user gesture. So: **the text-input fallback is first-class**, feature-detect on load, and onboarding recommends Chrome up front. A reviewer on Firefox/iPhone must still get a working (typed) demo.
 - **Default TTS voices are robotic.** Keep browser `speechSynthesis` for the free, no-key demo, but auto-select the best available local voice, and name **cloud TTS as the explicit upgrade path** (already in the blog). Don't oversell "feels alive" beyond what local voices deliver.
 - **Mid-conversation tool calls pause the stream.** When the model calls a tool, the SSE token stream stops, the tool runs, then a second model call continues. The `sentenceChunker` + TTS queue must tolerate that gap without speaking a half sentence.
 - **SDK:** use the current **`@google/genai`** SDK (cleaner streaming + function-calling) rather than the legacy `@google/generative-ai@0.24`; note the divergence in the README. Model default `gemini-3.1-flash-lite`, made configurable via `ECHO_MODEL`.
-- **API key handling:** the Gemini key lives only in `.env.local` (gitignored) — never in committed files, fixtures, or logs.
+- **API key handling:** the Gemini key lives only in `.env.local` (gitignored) - never in committed files, fixtures, or logs.
 
 ## 13. One-shot build checklist (order of operations)
 
 1. Scaffold Next.js 16 + TS + Tailwind v4; `globals.css` cyan/teal tokens + dark mode.
-2. `hooks/useSpeechRecognition.ts` and `hooks/useSpeech.ts` — prove mic-in and voice-out in isolation first.
+2. `hooks/useSpeechRecognition.ts` and `hooks/useSpeech.ts` - prove mic-in and voice-out in isolation first.
 3. `lib/gemini.ts` (BYOK/demo key) + `lib/sse.ts` + `api/chat/route.ts` streaming with function calling.
 4. `lib/conversation/{sentenceChunker,turnMachine,tools,prompts}.ts`.
-5. `hooks/useVoiceAgent.ts` — wire STT → SSE → chunker → TTS; get a full spoken round-trip working.
+5. `hooks/useVoiceAgent.ts` - wire STT → SSE → chunker → TTS; get a full spoken round-trip working.
 6. Add **barge-in** (cancel TTS on user speech) and continuous listening.
 7. `VoiceOrb` + `LiveCaptions` + `StatusPill` + `MicButton` + `VoicePicker` + text fallback.
 8. **Onboarding wizard (3 steps incl. mic permission) + AboutContent + AboutModal** (port + reskin cyan). Wire `useOnboarding`.
@@ -232,4 +232,4 @@ npx concurrently -n trailers,gemini,scout,echo -c red,blue,magenta,cyan \
   "cd scout && npm run dev" \
   "cd echo && npm run dev"
 ```
-Each project keeps its own git repo, `.env.local`, and `node_modules` — they're fully independent apps that only share a port convention and a visual language.
+Each project keeps its own git repo, `.env.local`, and `node_modules` - they're fully independent apps that only share a port convention and a visual language.

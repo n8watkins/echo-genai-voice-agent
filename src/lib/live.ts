@@ -28,12 +28,12 @@ export const INPUT_MIME_TYPE = `audio/pcm;rate=${INPUT_SAMPLE_RATE}`;
 /** Default persona-less system instruction for the Live session. */
 export const LIVE_SYSTEM_INSTRUCTION =
   'You are Echo, a warm, concise voice assistant. Keep replies short and conversational. ' +
-  'You can call tools for the weather, the current time, and web search — use them when the ' +
+  'You can call tools for the weather, the current time, and web search - use them when the ' +
   'user asks about current conditions, the time somewhere, or facts you are unsure of.';
 
 /**
  * Encode a Float32 PCM frame ([-1,1]) to base64-encoded 16-bit little-endian
- * PCM — the on-the-wire format for `sendRealtimeInput`.
+ * PCM - the on-the-wire format for `sendRealtimeInput`.
  */
 export function float32ToBase64PCM16(input: Float32Array): string {
   const buffer = new ArrayBuffer(input.length * 2);
@@ -80,7 +80,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
 
 /**
  * Downsample a Float32 frame from the AudioContext's native rate to 16 kHz
- * (nearest-neighbor decimation — cheap and adequate for speech). Returns the
+ * (nearest-neighbor decimation - cheap and adequate for speech). Returns the
  * input unchanged when already at the target rate.
  */
 export function downsampleTo16k(input: Float32Array, fromRate: number): Float32Array {

@@ -1,4 +1,4 @@
-# Render Blueprint for Echo — https://render.com/docs/blueprint-spec
+# Render Blueprint for Echo - https://render.com/docs/blueprint-spec
 #
 # Deploy: Render Dashboard -> New + -> Blueprint -> connect this repo -> Apply.
 # Then fill the secret env vars (marked `sync: false`) in the dashboard.
@@ -24,24 +24,24 @@ services:
       - key: NODE_VERSION
         value: "22"          # pin Node 22 LTS (package.json engines: ">=20")
       - key: GEMINI_API_KEY
-        sync: false          # required — server demo-key fallback; set in dashboard
+        sync: false          # required - server demo-key fallback; set in dashboard
       - key: ECHO_MODEL
-        sync: false          # optional — default text/tool model id
+        sync: false          # optional - default text/tool model id
       - key: TAVILY_API_KEY
-        sync: false          # optional — enables the web_search tool (free key at app.tavily.com)
+        sync: false          # optional - enables the web_search tool (free key at app.tavily.com)
       - key: NEXT_PUBLIC_PICOVOICE_ACCESS_KEY
-        sync: false          # optional — enables the on-device wake word
+        sync: false          # optional - enables the on-device wake word
       - key: NEXT_PUBLIC_APP_URL
         sync: false          # set to https://<your-app>.onrender.com after first deploy
       - key: TURSO_DATABASE_URL
-        sync: false          # optional — saving conversations (Turso/libSQL)
+        sync: false          # optional - saving conversations (Turso/libSQL)
       - key: TURSO_AUTH_TOKEN
-        sync: false          # optional — pairs with TURSO_DATABASE_URL
+        sync: false          # optional - pairs with TURSO_DATABASE_URL
       - key: AUTH_GITHUB_ID
-        sync: false          # optional — GitHub sign-in (gates saving)
+        sync: false          # optional - GitHub sign-in (gates saving)
       - key: AUTH_GITHUB_SECRET
-        sync: false          # optional — pairs with AUTH_GITHUB_ID
+        sync: false          # optional - pairs with AUTH_GITHUB_ID
       - key: AUTH_SECRET
-        sync: false          # required when AUTH_GITHUB_* are set — any random string
+        sync: false          # required when AUTH_GITHUB_* are set - any random string
       - key: AUTH_URL
-        sync: false          # prod canonical URL (https://<app>.onrender.com) — Auth.js OAuth callback host
+        sync: false          # prod canonical URL (https://<app>.onrender.com) - Auth.js OAuth callback host

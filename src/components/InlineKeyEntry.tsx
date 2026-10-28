@@ -34,7 +34,7 @@ export default function InlineKeyEntry({ onSaved }: { onSaved?: () => void }) {
         <div className="flex items-center justify-between gap-2 text-sm text-emerald-300">
           <span className="flex items-center gap-2">
             <span className="w-2 h-2 bg-emerald-400 rounded-full" />
-            Your key is active — unlimited use.
+            Your key is active - unlimited use.
           </span>
           <button onClick={removeApiKey} className="text-xs text-cyan-300 hover:text-cyan-200 underline">
             Remove
@@ -56,7 +56,7 @@ export default function InlineKeyEntry({ onSaved }: { onSaved?: () => void }) {
           (free, ~2 minutes)
         </li>
         <li>Click &quot;Create API Key&quot;</li>
-        <li>Paste it below — it stays in your browser, never on our servers.</li>
+        <li>Paste it below - it stays in your browser, never on our servers.</li>
       </ol>
 
       <div className="flex gap-2">

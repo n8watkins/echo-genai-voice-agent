@@ -80,7 +80,7 @@ export default function StagePage() {
   const activePartial = liveMode ? live.partialReply : agent.partialReply;
 
   // Auto-pick a voice matching the active persona's hint (unless the user has
-  // manually overridden the voice — applyVoiceHint no-ops in that case).
+  // manually overridden the voice - applyVoiceHint no-ops in that case).
   const { applyVoiceHint } = agent.speech;
   useEffect(() => {
     applyVoiceHint(persona.voiceHint);
@@ -191,7 +191,7 @@ export default function StagePage() {
             onClick={devView.toggle}
             aria-label="Toggle under-the-hood dev view"
             aria-pressed={devView.enabled}
-            title="Under the hood — show the live telemetry panel"
+            title="Under the hood - show the live telemetry panel"
             className={`p-2 rounded-lg transition ${
               devView.enabled
                 ? 'bg-cyan-500/15 text-cyan-200'
@@ -250,8 +250,8 @@ export default function StagePage() {
                       {live.status === 'thinking'
                         ? 'Thinking…'
                         : live.status === 'speaking'
-                          ? 'Speaking… — talk over Echo to cut in'
-                          : 'Listening — just talk (talk over Echo to interrupt)'}
+                          ? 'Speaking… - talk over Echo to cut in'
+                          : 'Listening - just talk (talk over Echo to interrupt)'}
                     </p>
                     <LiveCaptions interim={live.interim} reply={live.partialReply} />
                   </>
@@ -318,7 +318,7 @@ export default function StagePage() {
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && submitDraft()}
-                    placeholder="…or type — sending interrupts and Echo replies by voice"
+                    placeholder="…or type - sending interrupts and Echo replies by voice"
                     className="flex-1 rounded-xl bg-white/5 border border-white/15 px-4 py-3 text-cyan-50 placeholder-cyan-200/30 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
                   />
                   <button

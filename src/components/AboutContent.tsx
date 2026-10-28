@@ -38,7 +38,7 @@ const AboutContent: React.FC = () => {
             <p className="text-cyan-50/90 text-sm leading-relaxed">
               I&apos;m Nathan, and Echo is a portfolio project exploring what it takes to make a
               voice agent feel <em>alive</em> instead of like a walkie-talkie. It showcases
-              real-time streaming, turn-taking, and barge-in. I hope you enjoy it — and if
+              real-time streaming, turn-taking, and barge-in. I hope you enjoy it - and if
               you&apos;d like to explore further:
             </p>
           </div>
@@ -142,19 +142,19 @@ const AboutContent: React.FC = () => {
             <Feature
               icon={<UserGroupIcon className="w-6 h-6 text-violet-400" />}
               title="Personas"
-              desc="Switch characters — Witty Mentor, Noir Detective, Hype Coach — each with its own voice."
+              desc="Switch characters - Witty Mentor, Noir Detective, Hype Coach - each with its own voice."
               tint="violet"
             />
             <Feature
               icon={<SpeakerWaveIcon className="w-6 h-6 text-sky-400" />}
               title="Hands-free wake word"
-              desc="Optional on-device wake word — say the word and Echo starts listening, no key needed for the rest."
+              desc="Optional on-device wake word - say the word and Echo starts listening, no key needed for the rest."
               tint="sky"
             />
             <Feature
               icon={<ArrowUturnLeftIcon className="w-6 h-6 text-rose-400" />}
               title="Interrupt anytime"
-              desc="Talk over Echo and it stops and listens — true barge-in."
+              desc="Talk over Echo and it stops and listens - true barge-in."
               tint="rose"
             />
             <Feature
@@ -172,13 +172,13 @@ const AboutContent: React.FC = () => {
             <Feature
               icon={<KeyIcon className="w-6 h-6 text-emerald-400" />}
               title="Free to try, BYOK optional"
-              desc="No key needed — speech-to-text and text-to-speech run in your browser."
+              desc="No key needed - speech-to-text and text-to-speech run in your browser."
               tint="emerald"
             />
             <Feature
               icon={<CodeBracketIcon className="w-6 h-6 text-cyan-300" />}
               title="Open source on GitHub"
-              desc="Full source available — fork it, read the turn-taking state machine."
+              desc="Full source available - fork it, read the turn-taking state machine."
               tint="slate"
             />
           </div>

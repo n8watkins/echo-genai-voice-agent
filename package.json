@@ -20,7 +20,7 @@
     "@picovoice/porcupine-web": "^4.0.0",
     "@picovoice/web-voice-processor": "^4.0.10",
     "lucide-react": "^0.460.0",
-    "next": "^16.0.0",
+    "next": "^16.4.3",
     "next-auth": "^5.0.0-beta.31",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -31,7 +31,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.38.0",
-    "eslint-config-next": "^16.0.0",
+    "eslint-config-next": "^16.4.3",
     "tailwindcss": "^4.1.16",
     "typescript": "^5",
     "vitest": "^2.1.9"

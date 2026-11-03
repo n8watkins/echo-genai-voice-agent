@@ -3,9 +3,9 @@ import { estimateCostUsd, hasPricing, MODEL_PRICING } from './devtrace';
 
 describe('estimateCostUsd()', () => {
   it('computes cost via the §6 formula for a known model', () => {
-    // gemini-3.1-flash-lite: $0.25/1M in, $1.50/1M out.
-    // 1,000,000 in + 1,000,000 out => 0.25 + 1.50 = 1.75
-    expect(estimateCostUsd('gemini-3.1-flash-lite', 1_000_000, 1_000_000)).toBeCloseTo(1.75, 10);
+    // gemini-3.5-flash-lite: $0.30/1M in, $2.50/1M out.
+    // 1,000,000 in + 1,000,000 out => 0.30 + 2.50 = 2.80
+    expect(estimateCostUsd('gemini-3.5-flash-lite', 1_000_000, 1_000_000)).toBeCloseTo(2.8, 10);
   });
 
   it('scales linearly with token counts', () => {
@@ -20,7 +20,7 @@ describe('estimateCostUsd()', () => {
   });
 
   it('treats zero tokens as zero cost', () => {
-    expect(estimateCostUsd('gemini-3.1-flash-lite', 0, 0)).toBe(0);
+    expect(estimateCostUsd('gemini-3.5-flash-lite', 0, 0)).toBe(0);
   });
 
   it('clamps negative and non-finite token counts to 0', () => {
@@ -43,6 +43,7 @@ describe('estimateCostUsd()', () => {
 
 describe('hasPricing()', () => {
   it('is true for text models in the §6 table', () => {
+    expect(hasPricing('gemini-3.5-flash-lite')).toBe(true);
     expect(hasPricing('gemini-3.1-flash-lite')).toBe(true);
     expect(hasPricing('gemini-3.5-flash')).toBe(true);
   });

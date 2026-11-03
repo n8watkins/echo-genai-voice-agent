@@ -7,7 +7,7 @@ export async function GET() {
     status: 'ok',
     service: 'echo',
     hasDemoKey: !!process.env.GEMINI_API_KEY,
-    model: process.env.ECHO_MODEL?.trim() || 'gemini-3.1-flash-lite',
+    model: process.env.ECHO_MODEL?.trim() || 'gemini-3.5-flash-lite',
     time: new Date().toISOString(),
   });
 }

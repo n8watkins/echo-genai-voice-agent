@@ -32,8 +32,8 @@
 - [ ] Wake word ("Computer") starts a turn hands-free (needs `NEXT_PUBLIC_PICOVOICE_ACCESS_KEY` + the `.pv` model - see README).
 
 ## Model picker
-- [ ] On the **shared key** (no BYOK): only **Gemini 3.1 Flash Lite** is selectable; the others show "needs your own key" and are disabled.
-- [ ] Paste your **own Gemini key** (settings/BYOK) → the other models (2.5 Flash, 2.5 Flash Lite, 3 Flash, 3.5 Flash) **unlock**.
+- [ ] On the **shared key** (no BYOK): only **Gemini 3.5 Flash Lite** is selectable; the others show "needs your own key" and are disabled.
+- [ ] Paste your **own Gemini key** (settings/BYOK) → the other models (3.1 Flash Lite, 2.5 Flash, 2.5 Flash Lite, 3 Flash, 3.5 Flash) **unlock**.
 - [ ] Pick a different model with BYOK → responses noticeably differ (verify via the dev panel showing the chosen **model id** per call).
 - [ ] (Sanity) the server falls back to flash-lite if a non-shared model is requested without a key - can't trick the shared key into the expensive models (`pickModel` in `src/lib/gemini.ts`).
 

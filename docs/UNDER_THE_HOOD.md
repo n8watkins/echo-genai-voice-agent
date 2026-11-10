@@ -122,6 +122,7 @@ is illustrative "what this would cost at scale"). Mirrored in
 
 | Model | in | out |
 |---|---|---|
+| gemini-3.5-flash-lite | $0.30 | $2.50 |
 | gemini-3.1-flash-lite | $0.25 | $1.50 |
 | gemini-2.5-flash-lite | $0.10 | $0.40 |
 | gemini-2.5-flash | $0.30 | $2.50 |

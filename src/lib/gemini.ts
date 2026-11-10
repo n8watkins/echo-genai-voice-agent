@@ -9,14 +9,14 @@ import { GoogleGenAI } from '@google/genai';
  * key in GEMINI_API_KEY. Keys are never logged.
  */
 
-export const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
+export const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 
 /**
- * The one model that may run on the SHARED demo key. It has the highest free-
- * tier quota (500 req/day) and the lowest latency (which matters for the voice
- * loop). Every other model is BYOK-only - visitors must paste their own key.
+ * The one model that may run on the SHARED demo key: the current Flash Lite,
+ * which is on the free tier and has the lowest latency of the menu (which
+ * matters for the voice loop). Every other model is BYOK-only - visitors must paste their own key.
  */
-export const SHARED_MODEL = 'gemini-3.1-flash-lite';
+export const SHARED_MODEL = 'gemini-3.5-flash-lite';
 
 export type ModelTier = 'shared' | 'byok';
 
@@ -34,10 +34,16 @@ export interface ModelOption {
  */
 export const MODELS: ModelOption[] = [
   {
-    id: 'gemini-3.1-flash-lite',
-    label: 'Gemini 3.1 Flash Lite',
+    id: 'gemini-3.5-flash-lite',
+    label: 'Gemini 3.5 Flash Lite',
     tier: 'shared',
     blurb: 'Fastest & free on the shared key - the default.',
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    label: 'Gemini 3.1 Flash Lite',
+    tier: 'byok',
+    blurb: 'Previous-generation Flash Lite.',
   },
   {
     id: 'gemini-2.5-flash-lite',
